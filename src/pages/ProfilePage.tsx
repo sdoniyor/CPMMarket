@@ -30,21 +30,18 @@
 
 //   const [promo, setPromo] = useState("");
 //   const [tgLoading, setTgLoading] = useState(false);
+//   const [discount, setDiscount] = useState(0);
 
 //   const token = localStorage.getItem("token");
 
-//   /* ================= LOAD USER ================= */
+//   /* ================= LOAD ================= */
 //   const loadUser = async () => {
 //     try {
 //       const res = await fetch(`${API}/profile/me`, {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
+//         headers: { Authorization: `Bearer ${token}` },
 //       });
 
 //       const data = await res.json();
-
-//       console.log("USER FROM BACKEND:", data);
 
 //       if (!data?.id) {
 //         window.location.href = "/auth";
@@ -52,8 +49,10 @@
 //       }
 
 //       setUser(data);
+//       setDiscount(data?.active_promo?.rules?.discount ?? 0);
+
 //     } catch (e) {
-//       console.log("PROFILE ERROR:", e);
+//       console.log(e);
 //       window.location.href = "/auth";
 //     }
 //   };
@@ -62,7 +61,7 @@
 //     loadUser();
 //   }, []);
 
-//   /* ================= UPLOAD AVATAR ================= */
+//   /* ================= UPLOAD AVATAR (ВОТ ОНО ВЕРНУЛОСЬ) ================= */
 //   const uploadAvatar = async () => {
 //     if (!file) return alert("Выбери фото");
 
@@ -88,28 +87,6 @@
 //     }
 //   };
 
-//   /* ================= TELEGRAM ================= */
-//   const connectTelegram = async () => {
-//     setTgLoading(true);
-
-//     try {
-//       const res = await fetch(`${API}/profile/telegram/link`, {
-//         method: "POST",
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       });
-
-//       const data = await res.json();
-
-//       if (data?.link) {
-//         window.open(data.link, "_blank");
-//       }
-//     } finally {
-//       setTgLoading(false);
-//     }
-//   };
-
 //   /* ================= PROMO ================= */
 //   const applyPromo = async () => {
 //     if (!promo.trim()) return alert("Введите промокод");
@@ -126,33 +103,38 @@
 //     const data = await res.json();
 
 //     if (data?.success) {
-//       alert("Промокод активирован!");
 //       setPromo("");
-//       loadUser();
+
+//       const updated = await fetch(`${API}/profile/me`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+
+//       const u = await updated.json();
+
+//       setUser(u);
+//       setDiscount(u?.active_promo?.rules?.discount ?? 0);
 //     } else {
-//       alert(data?.error || "Invalid promo");
+//       alert(data?.error);
 //     }
 //   };
 
 //   if (!user) {
 //     return (
 //       <div className="min-h-screen flex items-center justify-center bg-black text-white">
-//         Loading profile...
+//         Loading...
 //       </div>
 //     );
 //   }
 
 //   const avatarUrl =
 //     preview ||
-//     (user.avatar
-//       ? user.avatar.startsWith("http")
-//         ? user.avatar
-//         : `${API}${user.avatar}`
+//     (user.avatar?.startsWith("http")
+//       ? user.avatar
+//       : user.avatar
+//       ? `${API}${user.avatar}`
 //       : null);
 
 //   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
-
-//   const discount = user.active_promo?.rules?.discount || 0;
 
 //   return (
 //     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
@@ -161,7 +143,7 @@
 //         {/* HEADER */}
 //         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
 
-//           <div className="w-24 h-24 rounded-2xl bg-yellow-400 text-black flex items-center justify-center overflow-hidden font-black text-3xl">
+//           <div className="w-24 h-24 rounded-2xl overflow-hidden bg-yellow-400 text-black flex items-center justify-center font-black text-3xl">
 //             {avatarUrl ? (
 //               <img src={avatarUrl} className="w-full h-full object-cover" />
 //             ) : (
@@ -172,9 +154,7 @@
 //           <div>
 //             <h1 className="text-3xl font-black">{user.name}</h1>
 //             <p className="text-white/40">{user.email}</p>
-
-//             {/* 💥 FIXED DISCOUNT */}
-//             <p className="text-yellow-400 text-sm mt-1">
+//             <p className="text-yellow-400 text-sm">
 //               Discount: {discount}%
 //             </p>
 //           </div>
@@ -198,29 +178,6 @@
 //               Copy
 //             </button>
 //           </div>
-
-//           <p className="text-white/40 text-sm mt-2">
-//             Referrals: {user.ref_count || 0}
-//           </p>
-//         </div>
-
-//         {/* TELEGRAM */}
-//         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-//           <h2 className="font-bold mb-3">Telegram</h2>
-
-//           {user.telegram_id ? (
-//             <p className="text-green-400">
-//               Connected: @{user.telegram_username}
-//             </p>
-//           ) : (
-//             <button
-//               onClick={connectTelegram}
-//               disabled={tgLoading}
-//               className="bg-blue-500 px-4 py-2 rounded-xl font-bold"
-//             >
-//               {tgLoading ? "Connecting..." : "Connect Telegram"}
-//             </button>
-//           )}
 //         </div>
 
 //         {/* PROMO */}
@@ -231,7 +188,6 @@
 //             <input
 //               value={promo}
 //               onChange={(e) => setPromo(e.target.value)}
-//               placeholder="Enter promo"
 //               className="flex-1 p-2 bg-black/40 border border-white/10 rounded-xl"
 //             />
 
@@ -244,9 +200,9 @@
 //           </div>
 //         </div>
 
-//         {/* AVATAR */}
+//         {/* ================= AVATAR UPLOAD (ВОССТАНОВЛЕНО) ================= */}
 //         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-//           <h2 className="font-bold mb-3">Upload Avatar</h2>
+//           <h2 className="font-bold mb-3">Avatar</h2>
 
 //           <input
 //             type="file"
@@ -284,6 +240,7 @@
 // }
 
 
+
 import { useEffect, useState } from "react";
 
 const API = "https://cpmmarker.onrender.com";
@@ -315,11 +272,10 @@ export default function ProfilePage() {
 
   const [promo, setPromo] = useState("");
   const [tgLoading, setTgLoading] = useState(false);
-  const [discount, setDiscount] = useState(0);
 
   const token = localStorage.getItem("token");
 
-  /* ================= LOAD ================= */
+  /* ================= LOAD USER ================= */
   const loadUser = async () => {
     try {
       const res = await fetch(`${API}/profile/me`, {
@@ -334,8 +290,6 @@ export default function ProfilePage() {
       }
 
       setUser(data);
-      setDiscount(data?.active_promo?.rules?.discount ?? 0);
-
     } catch (e) {
       console.log(e);
       window.location.href = "/auth";
@@ -346,7 +300,7 @@ export default function ProfilePage() {
     loadUser();
   }, []);
 
-  /* ================= UPLOAD AVATAR (ВОТ ОНО ВЕРНУЛОСЬ) ================= */
+  /* ================= AVATAR ================= */
   const uploadAvatar = async () => {
     if (!file) return alert("Выбери фото");
 
@@ -374,32 +328,35 @@ export default function ProfilePage() {
 
   /* ================= PROMO ================= */
   const applyPromo = async () => {
-    if (!promo.trim()) return alert("Введите промокод");
+    const code = promo.trim().toUpperCase();
 
-    const res = await fetch(`${API}/promo/redeem`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ code: promo }),
-    });
+    if (!code) {
+      return alert("Введите промокод");
+    }
 
-    const data = await res.json();
-
-    if (data?.success) {
-      setPromo("");
-
-      const updated = await fetch(`${API}/profile/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+    try {
+      const res = await fetch(`${API}/promo/redeem`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ code }),
       });
 
-      const u = await updated.json();
+      const data = await res.json();
 
-      setUser(u);
-      setDiscount(u?.active_promo?.rules?.discount ?? 0);
-    } else {
-      alert(data?.error);
+      if (!res.ok) {
+        throw new Error(data?.error || "Promo error");
+      }
+
+      setPromo("");
+
+      // 🔥 обновляем юзера после применения промо
+      await loadUser();
+
+    } catch (e: any) {
+      alert(e.message);
     }
   };
 
@@ -410,6 +367,8 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const discount = user?.active_promo?.rules?.discount ?? 0;
 
   const avatarUrl =
     preview ||
@@ -439,6 +398,7 @@ export default function ProfilePage() {
           <div>
             <h1 className="text-3xl font-black">{user.name}</h1>
             <p className="text-white/40">{user.email}</p>
+
             <p className="text-yellow-400 text-sm">
               Discount: {discount}%
             </p>
@@ -474,6 +434,7 @@ export default function ProfilePage() {
               value={promo}
               onChange={(e) => setPromo(e.target.value)}
               className="flex-1 p-2 bg-black/40 border border-white/10 rounded-xl"
+              placeholder="Enter promo"
             />
 
             <button
@@ -485,7 +446,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ================= AVATAR UPLOAD (ВОССТАНОВЛЕНО) ================= */}
+        {/* AVATAR */}
         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
           <h2 className="font-bold mb-3">Avatar</h2>
 
