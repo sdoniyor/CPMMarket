@@ -272,6 +272,7 @@ export default function ProfilePage() {
 
   const [promo, setPromo] = useState("");
   const [tgLoading, setTgLoading] = useState(false);
+  const [discount, setDiscount] = useState(0);
 
   const token = localStorage.getItem("token");
 
@@ -290,8 +291,9 @@ export default function ProfilePage() {
       }
 
       setUser(data);
+      setDiscount(data?.active_promo?.rules?.discount ?? 0);
     } catch (e) {
-      console.log(e);
+      console.log("PROFILE ERROR:", e);
       window.location.href = "/auth";
     }
   };
@@ -300,7 +302,7 @@ export default function ProfilePage() {
     loadUser();
   }, []);
 
-  /* ================= AVATAR ================= */
+  /* ================= UPLOAD AVATAR ================= */
   const uploadAvatar = async () => {
     if (!file) return alert("Выбери фото");
 
@@ -326,65 +328,82 @@ export default function ProfilePage() {
     }
   };
 
-  /* ================= PROMO ================= */
-  const applyPromo = async () => {
-    const code = promo.trim().toUpperCase();
-
-    if (!code) {
-      return alert("Введите промокод");
-    }
+  /* ================= TELEGRAM ================= */
+  const connectTelegram = async () => {
+    setTgLoading(true);
 
     try {
-      const res = await fetch(`${API}/promo/redeem`, {
+      const res = await fetch(`${API}/profile/telegram/link`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ code }),
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data?.error || "Promo error");
+      if (data?.link) {
+        window.open(data.link, "_blank");
       }
+    } finally {
+      setTimeout(() => setTgLoading(false), 800);
+    }
+  };
 
+  /* ================= PROMO ================= */
+  const applyPromo = async () => {
+    if (!promo.trim()) return alert("Введите промокод");
+
+    const res = await fetch(`${API}/promo/redeem`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ code: promo }),
+    });
+
+    const data = await res.json();
+
+    if (data?.success) {
       setPromo("");
 
-      // 🔥 обновляем юзера после применения промо
-      await loadUser();
+      const updated = await fetch(`${API}/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    } catch (e: any) {
-      alert(e.message);
+      const u = await updated.json();
+
+      setUser(u);
+      setDiscount(u?.active_promo?.rules?.discount ?? 0);
+    } else {
+      alert(data?.error || "Invalid promo");
     }
   };
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        Loading...
+        Loading profile...
       </div>
     );
   }
 
-  const discount = user?.active_promo?.rules?.discount ?? 0;
-
   const avatarUrl =
     preview ||
-    (user.avatar?.startsWith("http")
-      ? user.avatar
-      : user.avatar
-      ? `${API}${user.avatar}`
+    (user.avatar
+      ? user.avatar.startsWith("http")
+        ? user.avatar
+        : `${API}${user.avatar}`
       : null);
 
   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto space-y-6">
 
-        {/* HEADER */}
+        {/* ================= HEADER ================= */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
 
           <div className="w-24 h-24 rounded-2xl overflow-hidden bg-yellow-400 text-black flex items-center justify-center font-black text-3xl">
@@ -399,14 +418,14 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-black">{user.name}</h1>
             <p className="text-white/40">{user.email}</p>
 
-            <p className="text-yellow-400 text-sm">
+            <p className="text-yellow-400 text-sm mt-1">
               Discount: {discount}%
             </p>
           </div>
         </div>
 
-        {/* REF */}
-        <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
+        {/* ================= REF ================= */}
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
           <h2 className="font-bold mb-3">Referral Link</h2>
 
           <div className="flex gap-2">
@@ -423,18 +442,44 @@ export default function ProfilePage() {
               Copy
             </button>
           </div>
+
+          <p className="text-white/40 text-sm mt-2">
+            Referrals: {user.ref_count || 0}
+          </p>
         </div>
 
-        {/* PROMO */}
-        <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
+        {/* ================= TELEGRAM ================= */}
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+          <h2 className="font-bold mb-3">Telegram</h2>
+
+          {user.telegram_id ? (
+            <p className="text-green-400">
+              Connected: @{user.telegram_username}
+            </p>
+          ) : (
+            <button
+              onClick={connectTelegram}
+              disabled={tgLoading}
+              className="bg-blue-500 px-4 py-2 rounded-xl font-bold disabled:opacity-50 flex items-center gap-2"
+            >
+              {tgLoading && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              )}
+              {tgLoading ? "Connecting..." : "Connect Telegram"}
+            </button>
+          )}
+        </div>
+
+        {/* ================= PROMO ================= */}
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
           <h2 className="font-bold mb-3">Promo Code</h2>
 
           <div className="flex gap-2">
             <input
               value={promo}
               onChange={(e) => setPromo(e.target.value)}
-              className="flex-1 p-2 bg-black/40 border border-white/10 rounded-xl"
               placeholder="Enter promo"
+              className="flex-1 p-2 bg-black/40 border border-white/10 rounded-xl"
             />
 
             <button
@@ -446,9 +491,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* AVATAR */}
-        <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-          <h2 className="font-bold mb-3">Avatar</h2>
+        {/* ================= AVATAR ================= */}
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+          <h2 className="font-bold mb-3">Upload Avatar</h2>
 
           <input
             type="file"
