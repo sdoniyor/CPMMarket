@@ -358,43 +358,16 @@ type Car = {
   brand: string;
   name: string;
   price: number;
-  image_url: string;
-  type: "premium" | "coin" | "default";
   final_price?: number;
-  promo_active?: boolean;
+  image_url: string;
 };
 
-type Promo = {
-  discount: number;
-  car_ids: string | number[] | null;
-};
-
-type User = {
-  active_promo?: Promo | null;
-};
-
-/* ================= HELPERS ================= */
-const parseCarIds = (input: any): number[] => {
-  if (!input) return [];
-  if (Array.isArray(input)) return input.map(Number).filter(Boolean);
-
-  if (typeof input === "string") {
-    return input
-      .split(",")
-      .map((x) => Number(x.trim()))
-      .filter(Boolean);
-  }
-
-  return [];
-};
-
-/* ================= COMPONENT ================= */
 export default function CarDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const nav = useNavigate();
 
   const [car, setCar] = useState<Car | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [configs, setConfigs] = useState({
     power: [] as ConfigItem[],
@@ -406,282 +379,135 @@ export default function CarDetail() {
   const [selectedTuning, setSelectedTuning] = useState<ConfigItem | null>(null);
   const [selectedWheels, setSelectedWheels] = useState<ConfigItem | null>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showPay, setShowPay] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [randomPass, setRandomPass] = useState("");
-
-  /* ================= LOAD ================= */
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
-        setError("");
 
         const token = localStorage.getItem("token");
-
-        if (!token) {
-          navigate("/login");
-          return;
-        }
+        if (!token) return nav("/login");
 
         const headers = {
           Authorization: `Bearer ${token}`,
         };
 
-        const [carsRes, configsRes, userRes] = await Promise.all([
+        const [carsRes, configsRes] = await Promise.all([
           fetch(`${API}/market/cars`, { headers }),
           fetch(`${API}/market/configs`, { headers }),
-          fetch(`${API}/profile/me`, { headers }),
         ]);
 
-        if ([carsRes, configsRes, userRes].some((r) => r.status === 401)) {
-          localStorage.removeItem("token");
-          navigate("/login");
-          return;
-        }
+        const cars = await carsRes.json();
+        const cfg = await configsRes.json();
 
-        const carsData = await carsRes.json();
-        const configsData = await configsRes.json();
-        const userData = await userRes.json();
+        const found = cars.find((c: Car) => String(c.id) === String(id));
 
-        if (!Array.isArray(carsData)) {
-          throw new Error("Cars API вернул не массив");
-        }
+        setCar(found);
 
-        const foundCar = carsData.find(
-          (c: Car) => String(c.id) === String(id)
-        );
+        setConfigs({
+          power: cfg?.power || [],
+          tuning: cfg?.tuning || [],
+          wheels: cfg?.wheels || [],
+        });
 
-        if (!foundCar) {
-          throw new Error("Машина не найдена");
-        }
+        setSelectedHp(cfg?.power?.[0] ?? null);
+        setSelectedTuning(cfg?.tuning?.[0] ?? null);
+        setSelectedWheels(cfg?.wheels?.[0] ?? null);
 
-        setCar(foundCar);
-        setUser(userData);
-
-        /* ================= CONFIG FIX ================= */
-        const safeConfigs = {
-          power: Array.isArray(configsData?.power) ? configsData.power : [],
-          tuning: Array.isArray(configsData?.tuning) ? configsData.tuning : [],
-          wheels: Array.isArray(configsData?.wheels) ? configsData.wheels : [],
-        };
-
-        setConfigs(safeConfigs);
-
-        setSelectedHp(safeConfigs.power[0] ?? null);
-        setSelectedTuning(safeConfigs.tuning[0] ?? null);
-        setSelectedWheels(safeConfigs.wheels[0] ?? null);
-
-      } catch (e: any) {
-        console.error(e);
-        setError(e.message || "Ошибка загрузки");
+      } catch (e) {
+        console.log(e);
       } finally {
         setLoading(false);
       }
     };
 
     load();
-  }, [id, navigate]);
+  }, [id]);
 
-  /* ================= PROMO ================= */
-  const promo = user?.active_promo ?? null;
-  const discount = promo?.discount ?? 0;
-  const promoCars = parseCarIds(promo?.car_ids);
+  /* ================= PRICE (КАК В MARKET) ================= */
 
-  const canUsePromo =
-    !!promo &&
-    discount > 0 &&
-    (!promoCars.length || promoCars.includes(Number(id)));
-
-  const finalDiscount = canUsePromo ? discount : 0;
-
-  /* ================= PRICE ================= */
-  const basePrice = Number(car?.price || 0);
+  const basePrice = car?.final_price ?? car?.price ?? 0;
 
   const configPrice =
     (selectedHp?.price || 0) +
     (selectedTuning?.price || 0) +
     (selectedWheels?.price || 0);
 
-  const discountedBase =
-    finalDiscount > 0
-      ? Math.floor(basePrice - (basePrice * finalDiscount) / 100)
-      : basePrice;
-
-  const totalPrice = discountedBase + configPrice;
-
-  /* ================= ORDER ================= */
-  const handleOpenPay = () => {
-    setRandomPass(Math.floor(1000 + Math.random() * 9000).toString());
-    setShowPay(true);
-  };
-
-  const selectedConfigs = [
-    `Engine: ${selectedHp?.name || "Stock"}`,
-    `Tuning: ${selectedTuning?.name || "None"}`,
-    `Wheels: ${selectedWheels?.name || "None"}`,
-    `Password: ${randomPass}`,
-  ];
-
-  const sendToTelegram = async () => {
-    try {
-      setSending(true);
-
-      const token = localStorage.getItem("token");
-
-      await fetch(`${API}/telegram/order-to-tg`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          car,
-          configs: selectedConfigs,
-          total: totalPrice,
-        }),
-      });
-
-      alert("ORDER SENT");
-      navigate("/market");
-    } catch (e) {
-      console.error(e);
-      alert("ERROR");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  /* ================= CONFIG UI ================= */
-  const renderConfig = (
-    title: string,
-    items: ConfigItem[],
-    selected: ConfigItem | null,
-    setter: (x: ConfigItem) => void
-  ) => (
-    <div className="mt-8">
-      <h2 className="text-xl font-bold mb-4 text-zinc-200">{title}</h2>
-
-      {items.length === 0 ? (
-        <div className="text-zinc-500 text-sm">Нет опций</div>
-      ) : (
-        <div className="grid md:grid-cols-3 gap-4">
-          {items.map((item) => {
-            const active = selected?.id === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => setter(item)}
-                className={`rounded-2xl p-4 border transition ${
-                  active
-                    ? "border-green-400 bg-green-500/10"
-                    : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
-                }`}
-              >
-                <div className="font-semibold">{item.name}</div>
-                <div className="text-green-400 mt-2">
-                  +${item.price}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+  const totalPrice = basePrice + configPrice;
 
   /* ================= UI ================= */
   if (loading)
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        🚘 Loading...
+        Loading...
       </div>
     );
 
-  if (error || !car)
+  if (!car)
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        {error || "Car not found"}
+        Car not found
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
+    <div className="min-h-screen bg-black text-white">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="text-5xl font-black">
+      <div className="max-w-6xl mx-auto p-6">
+        <h1 className="text-4xl font-black">
           {car.brand} {car.name}
         </h1>
 
-        <div className="mt-6 rounded-3xl overflow-hidden bg-zinc-950 h-[420px] flex items-center justify-center">
-          <img
-            src={car.image_url}
-            alt={car.name}
-            onError={(e) => {
-              e.currentTarget.src =
-                "https://via.placeholder.com/800x400?text=No+Image";
-            }}
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <img
+          src={car.image_url}
+          className="w-full mt-4 rounded-2xl"
+        />
 
-        <div className="mt-8 rounded-3xl bg-zinc-900 border border-zinc-800 p-6">
-          {finalDiscount > 0 && (
-            <div className="line-through text-zinc-500 text-xl">
-              ${basePrice}
-            </div>
-          )}
-
+        {/* PRICE (как Market) */}
+        <div className="mt-6">
           <div className="text-4xl font-black text-green-400">
             ${totalPrice}
           </div>
 
-          {finalDiscount > 0 && (
-            <div className="mt-2 text-yellow-400">
-              🔥 -{finalDiscount}% PROMO
+          {car.final_price && car.price !== car.final_price && (
+            <div className="line-through text-gray-500">
+              ${car.price}
             </div>
           )}
-
-          <button
-            onClick={handleOpenPay}
-            className="mt-6 w-full py-4 rounded-2xl bg-green-500 hover:bg-green-400 text-black font-black text-lg transition"
-          >
-            BUY NOW
-          </button>
         </div>
 
-        {renderConfig("⚡ Power", configs.power, selectedHp, setSelectedHp)}
-        {renderConfig("🎨 Tuning", configs.tuning, selectedTuning, setSelectedTuning)}
-        {renderConfig("🛞 Wheels", configs.wheels, selectedWheels, setSelectedWheels)}
-      </div>
+        <button className="mt-6 bg-yellow-400 text-black px-6 py-3 rounded-xl font-black">
+          BUY
+        </button>
 
-      {showPay && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6">
-          <div className="w-full max-w-md bg-zinc-900 p-6 rounded-3xl border border-zinc-700">
-            <h3 className="text-2xl font-bold mb-4">Confirm Order</h3>
-
-            {selectedConfigs.map((c, i) => (
-              <div key={i}>{c}</div>
-            ))}
-
-            <div className="mt-4 text-green-400 text-2xl font-bold">
-              ${totalPrice}
-            </div>
-
-            <button
-              onClick={sendToTelegram}
-              disabled={sending}
-              className="mt-6 w-full py-3 rounded-xl bg-yellow-400 text-black font-bold"
-            >
-              {sending ? "SENDING..." : "CONFIRM"}
+        {/* CONFIGS */}
+        <div className="mt-10">
+          <h2>Power</h2>
+          {configs.power.map((i) => (
+            <button key={i.id} onClick={() => setSelectedHp(i)}>
+              {i.name} +${i.price}
             </button>
-          </div>
+          ))}
         </div>
-      )}
+
+        <div className="mt-6">
+          <h2>Tuning</h2>
+          {configs.tuning.map((i) => (
+            <button key={i.id} onClick={() => setSelectedTuning(i)}>
+              {i.name} +${i.price}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6">
+          <h2>Wheels</h2>
+          {configs.wheels.map((i) => (
+            <button key={i.id} onClick={() => setSelectedWheels(i)}>
+              {i.name} +${i.price}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
