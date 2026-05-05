@@ -70,13 +70,13 @@
 // module.exports = router;
 
 
-
 const express = require("express");
 const auth = require("../middleware/auth");
 const { q } = require("../db");
 
 const router = express.Router();
 
+/* ================= PROMO ================= */
 const getUserPromo = async (userId) => {
   const promoRes = await q(
     `
@@ -92,6 +92,7 @@ const getUserPromo = async (userId) => {
   return promoRes.rows[0] || null;
 };
 
+/* ================= CARS ================= */
 router.get("/cars", auth, async (req, res) => {
   try {
     const userId = req.userId;
@@ -108,12 +109,12 @@ router.get("/cars", auth, async (req, res) => {
     const discount = Number(promo?.discount || 0);
 
     const cars = carsRes.rows.map((car) => {
-      let finalPrice = car.price;
+      let discountPrice = null;
       let active = false;
 
       if (promo && discount > 0) {
         if (rules === "all" || rules === car.type) {
-          finalPrice = Math.floor(
+          discountPrice = Math.floor(
             car.price - (car.price * discount) / 100
           );
           active = true;
@@ -121,8 +122,18 @@ router.get("/cars", auth, async (req, res) => {
       }
 
       return {
-        ...car,
-        final_price: finalPrice,
+        id: car.id,
+        name: car.name,
+        brand: car.brand,
+
+        // 🔥 ОРИГИНАЛ ВСЕГДА
+        price: car.price,
+
+        // 🔥 СКИДКА ТОЛЬКО ДЛЯ UI
+        discount_price: discountPrice,
+
+        image_url: car.image_url,
+        type: car.type,
         promo_active: active,
       };
     });
@@ -130,12 +141,11 @@ router.get("/cars", auth, async (req, res) => {
     res.json(cars);
   } catch (e) {
     console.log("CARS ERROR:", e);
-    res.status(500).json({
-      error: "Failed to load cars",
-    });
+    res.status(500).json({ error: "Failed to load cars" });
   }
 });
 
+/* ================= CONFIGS ================= */
 router.get("/configs", auth, async (req, res) => {
   try {
     const result = await q(`
@@ -157,7 +167,7 @@ router.get("/configs", auth, async (req, res) => {
       else if (type === "wheels") wheels.push(item);
     }
 
-    console.log("CONFIGS FROM DB:", { power, tuning, wheels });
+    console.log("CONFIGS:", { power, tuning, wheels });
 
     res.json({ power, tuning, wheels });
 
