@@ -7,12 +7,19 @@
 //   id: number;
 //   name: string;
 //   email?: string;
-//   discount?: number;
 //   avatar?: string;
 //   ref_code?: string;
 //   ref_count?: number;
 //   telegram_username?: string;
 //   telegram_id?: string;
+
+//   active_promo?: {
+//     promo_code: string;
+//     rules: {
+//       discount: number;
+//       allowed_types?: string[];
+//     };
+//   } | null;
 // };
 
 // export default function ProfilePage() {
@@ -36,7 +43,9 @@
 //       });
 
 //       const data = await res.json();
-//       console.log("USER FROM BACKEND:", data); // 👈 ВОТ СЮДА
+
+//       console.log("USER FROM BACKEND:", data);
+
 //       if (!data?.id) {
 //         window.location.href = "/auth";
 //         return;
@@ -54,13 +63,12 @@
 //   }, []);
 
 //   /* ================= UPLOAD AVATAR ================= */
-// const uploadAvatar = async () => {
-//   if (!file) return alert("Выбери фото");
+//   const uploadAvatar = async () => {
+//     if (!file) return alert("Выбери фото");
 
-//   const form = new FormData();
-//   form.append("avatar", file);
+//     const form = new FormData();
+//     form.append("avatar", file);
 
-//   try {
 //     const res = await fetch(`${API}/profile/upload-avatar`, {
 //       method: "POST",
 //       headers: {
@@ -72,28 +80,19 @@
 //     const data = await res.json();
 
 //     if (data?.success) {
-//       // ✅ ВАЖНО: полностью обновляем пользователя
 //       setUser(data.user);
-
-//       // 🔥 сбрасываем превью
 //       setFile(null);
 //       setPreview(null);
-
 //     } else {
 //       alert(data?.error || "Upload error");
 //     }
-
-//   } catch (e) {
-//     console.log(e);
-//     alert("Upload failed");
-//   }
-// };
+//   };
 
 //   /* ================= TELEGRAM ================= */
 //   const connectTelegram = async () => {
-//     try {
-//       setTgLoading(true);
+//     setTgLoading(true);
 
+//     try {
 //       const res = await fetch(`${API}/profile/telegram/link`, {
 //         method: "POST",
 //         headers: {
@@ -115,27 +114,23 @@
 //   const applyPromo = async () => {
 //     if (!promo.trim()) return alert("Введите промокод");
 
-//     try {
-//       const res = await fetch(`${API}/promo/redeem`, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `Bearer ${token}`,
-//         },
-//         body: JSON.stringify({ code: promo }),
-//       });
+//     const res = await fetch(`${API}/promo/redeem`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//       body: JSON.stringify({ code: promo }),
+//     });
 
-//       const data = await res.json();
+//     const data = await res.json();
 
-//       if (data?.success) {
-//         alert("Промокод активирован!");
-//         setPromo("");
-//         loadUser();
-//       } else {
-//         alert(data?.error || "Invalid promo");
-//       }
-//     } catch {
-//       alert("Server error");
+//     if (data?.success) {
+//       alert("Промокод активирован!");
+//       setPromo("");
+//       loadUser();
+//     } else {
+//       alert(data?.error || "Invalid promo");
 //     }
 //   };
 
@@ -154,16 +149,16 @@
 //         ? user.avatar
 //         : `${API}${user.avatar}`
 //       : null);
-//   console.log("DEBUG avatar:", user.avatar);
-//   console.log("DEBUG avatarUrl:", avatarUrl);
+
 //   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
+
+//   const discount = user.active_promo?.rules?.discount || 0;
 
 //   return (
 //     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
-
 //       <div className="max-w-4xl mx-auto">
 
-//         {/* ================= HEADER ================= */}
+//         {/* HEADER */}
 //         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
 
 //           <div className="w-24 h-24 rounded-2xl bg-yellow-400 text-black flex items-center justify-center overflow-hidden font-black text-3xl">
@@ -178,19 +173,18 @@
 //             <h1 className="text-3xl font-black">{user.name}</h1>
 //             <p className="text-white/40">{user.email}</p>
 
+//             {/* 💥 FIXED DISCOUNT */}
 //             <p className="text-yellow-400 text-sm mt-1">
-//               Discount: {user.discount || 0}%
+//               Discount: {discount}%
 //             </p>
 //           </div>
 //         </div>
 
-//         {/* ================= REF LINK ================= */}
+//         {/* REF */}
 //         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-
 //           <h2 className="font-bold mb-3">Referral Link</h2>
 
 //           <div className="flex gap-2">
-
 //             <input
 //               value={refLink}
 //               readOnly
@@ -203,18 +197,15 @@
 //             >
 //               Copy
 //             </button>
-
 //           </div>
 
-//           {/* 🔥 REF COUNT */}
 //           <p className="text-white/40 text-sm mt-2">
 //             Referrals: {user.ref_count || 0}
 //           </p>
 //         </div>
 
-//         {/* ================= TELEGRAM ================= */}
+//         {/* TELEGRAM */}
 //         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-
 //           <h2 className="font-bold mb-3">Telegram</h2>
 
 //           {user.telegram_id ? (
@@ -230,16 +221,13 @@
 //               {tgLoading ? "Connecting..." : "Connect Telegram"}
 //             </button>
 //           )}
-
 //         </div>
 
-//         {/* ================= PROMO ================= */}
+//         {/* PROMO */}
 //         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-
 //           <h2 className="font-bold mb-3">Promo Code</h2>
 
 //           <div className="flex gap-2">
-
 //             <input
 //               value={promo}
 //               onChange={(e) => setPromo(e.target.value)}
@@ -253,13 +241,11 @@
 //             >
 //               Apply
 //             </button>
-
 //           </div>
 //         </div>
 
-//         {/* ================= UPLOAD AVATAR ================= */}
+//         {/* AVATAR */}
 //         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-
 //           <h2 className="font-bold mb-3">Upload Avatar</h2>
 
 //           <input
@@ -272,9 +258,7 @@
 //               setFile(f);
 
 //               const reader = new FileReader();
-//               reader.onload = () => {
-//                 setPreview(reader.result as string);
-//               };
+//               reader.onload = () => setPreview(reader.result as string);
 //               reader.readAsDataURL(f);
 //             }}
 //           />
@@ -292,17 +276,12 @@
 //           >
 //             Save Avatar
 //           </button>
-
 //         </div>
 
 //       </div>
 //     </div>
 //   );
 // }
-
-
-
-
 
 
 import { useEffect, useState } from "react";
@@ -337,20 +316,19 @@ export default function ProfilePage() {
   const [promo, setPromo] = useState("");
   const [tgLoading, setTgLoading] = useState(false);
 
+  // 🔥 NEW STATE (ВАЖНО)
+  const [discount, setDiscount] = useState(0);
+
   const token = localStorage.getItem("token");
 
   /* ================= LOAD USER ================= */
   const loadUser = async () => {
     try {
       const res = await fetch(`${API}/profile/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
-
-      console.log("USER FROM BACKEND:", data);
 
       if (!data?.id) {
         window.location.href = "/auth";
@@ -358,6 +336,10 @@ export default function ProfilePage() {
       }
 
       setUser(data);
+
+      // 🔥 SAFE DISCOUNT PARSE
+      setDiscount(data?.active_promo?.rules?.discount ?? 0);
+
     } catch (e) {
       console.log("PROFILE ERROR:", e);
       window.location.href = "/auth";
@@ -367,54 +349,6 @@ export default function ProfilePage() {
   useEffect(() => {
     loadUser();
   }, []);
-
-  /* ================= UPLOAD AVATAR ================= */
-  const uploadAvatar = async () => {
-    if (!file) return alert("Выбери фото");
-
-    const form = new FormData();
-    form.append("avatar", file);
-
-    const res = await fetch(`${API}/profile/upload-avatar`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: form,
-    });
-
-    const data = await res.json();
-
-    if (data?.success) {
-      setUser(data.user);
-      setFile(null);
-      setPreview(null);
-    } else {
-      alert(data?.error || "Upload error");
-    }
-  };
-
-  /* ================= TELEGRAM ================= */
-  const connectTelegram = async () => {
-    setTgLoading(true);
-
-    try {
-      const res = await fetch(`${API}/profile/telegram/link`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (data?.link) {
-        window.open(data.link, "_blank");
-      }
-    } finally {
-      setTgLoading(false);
-    }
-  };
 
   /* ================= PROMO ================= */
   const applyPromo = async () => {
@@ -433,8 +367,21 @@ export default function ProfilePage() {
 
     if (data?.success) {
       alert("Промокод активирован!");
+
       setPromo("");
-      loadUser();
+
+      // 🔥 IMPORTANT: reload user AFTER redeem
+      const updated = await fetch(`${API}/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const updatedUser = await updated.json();
+
+      setUser(updatedUser);
+
+      // 🔥 UPDATE DISCOUNT IMMEDIATELY
+      setDiscount(updatedUser?.active_promo?.rules?.discount ?? 0);
+
     } else {
       alert(data?.error || "Invalid promo");
     }
@@ -448,17 +395,14 @@ export default function ProfilePage() {
     );
   }
 
-  const avatarUrl =
-    preview ||
-    (user.avatar
-      ? user.avatar.startsWith("http")
-        ? user.avatar
-        : `${API}${user.avatar}`
-      : null);
-
   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
 
-  const discount = user.active_promo?.rules?.discount || 0;
+  const avatarUrl =
+    user.avatar?.startsWith("http")
+      ? user.avatar
+      : user.avatar
+      ? `${API}${user.avatar}`
+      : null;
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
@@ -479,7 +423,7 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-black">{user.name}</h1>
             <p className="text-white/40">{user.email}</p>
 
-            {/* 💥 FIXED DISCOUNT */}
+            {/* 🔥 LIVE DISCOUNT */}
             <p className="text-yellow-400 text-sm mt-1">
               Discount: {discount}%
             </p>
@@ -510,25 +454,6 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* TELEGRAM */}
-        <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-          <h2 className="font-bold mb-3">Telegram</h2>
-
-          {user.telegram_id ? (
-            <p className="text-green-400">
-              Connected: @{user.telegram_username}
-            </p>
-          ) : (
-            <button
-              onClick={connectTelegram}
-              disabled={tgLoading}
-              className="bg-blue-500 px-4 py-2 rounded-xl font-bold"
-            >
-              {tgLoading ? "Connecting..." : "Connect Telegram"}
-            </button>
-          )}
-        </div>
-
         {/* PROMO */}
         <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
           <h2 className="font-bold mb-3">Promo Code</h2>
@@ -548,40 +473,6 @@ export default function ProfilePage() {
               Apply
             </button>
           </div>
-        </div>
-
-        {/* AVATAR */}
-        <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
-          <h2 className="font-bold mb-3">Upload Avatar</h2>
-
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-
-              setFile(f);
-
-              const reader = new FileReader();
-              reader.onload = () => setPreview(reader.result as string);
-              reader.readAsDataURL(f);
-            }}
-          />
-
-          {preview && (
-            <img
-              src={preview}
-              className="w-24 h-24 mt-3 rounded-xl object-cover"
-            />
-          )}
-
-          <button
-            onClick={uploadAvatar}
-            className="mt-3 bg-green-500 px-6 py-2 rounded-xl font-bold"
-          >
-            Save Avatar
-          </button>
         </div>
 
       </div>
