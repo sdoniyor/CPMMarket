@@ -136,11 +136,35 @@ router.get("/cars", auth, async (req, res) => {
   }
 });
 
-router.get("/configs", (req, res) => {
-  res.json({
-    market_enabled: true,
-    promo_enabled: true,
-  });
+router.get("/configs", auth, async (req, res) => {
+  try {
+    const result = await q(`
+      SELECT id, type, name, price
+      FROM global_car_configs
+    `);
+
+    const rows = result.rows || [];
+
+    const power = [];
+    const tuning = [];
+    const wheels = [];
+
+    for (const item of rows) {
+      const type = String(item.type || "").toLowerCase().trim();
+
+      if (type === "power") power.push(item);
+      else if (type === "tuning") tuning.push(item);
+      else if (type === "wheels") wheels.push(item);
+    }
+
+    console.log("CONFIGS FROM DB:", { power, tuning, wheels });
+
+    res.json({ power, tuning, wheels });
+
+  } catch (e) {
+    console.log("CONFIG ERROR:", e);
+    res.status(500).json({ error: "configs failed" });
+  }
 });
 
 module.exports = router;
