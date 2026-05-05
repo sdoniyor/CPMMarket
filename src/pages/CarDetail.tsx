@@ -10,7 +10,6 @@
 //   id: number;
 //   name: string;
 //   price: number;
-//   type?: string;
 // };
 
 // type Car = {
@@ -48,9 +47,8 @@
 
 //   const [loading, setLoading] = useState(true);
 
-//   /* ================= MODAL ================= */
 //   const [showPay, setShowPay] = useState(false);
-//   const [randomPass, setRandomPass] = useState("");
+//   const [password, setPassword] = useState("");
 //   const [sending, setSending] = useState(false);
 
 //   /* ================= LOAD ================= */
@@ -80,17 +78,15 @@
 //         setUser(u);
 
 //         /* ================= CONFIG FIX ================= */
-//         const safeCfg = {
+//         setConfigs({
 //           power: cfg.power || [],
 //           tuning: cfg.tuning || [],
 //           wheels: cfg.wheels || [],
-//         };
+//         });
 
-//         setConfigs(safeCfg);
-
-//         setSelectedHp(safeCfg.power[0] || null);
-//         setSelectedTuning(safeCfg.tuning[0] || null);
-//         setSelectedWheels(safeCfg.wheels[0] || null);
+//         setSelectedHp(cfg.power?.[0] || null);
+//         setSelectedTuning(cfg.tuning?.[0] || null);
+//         setSelectedWheels(cfg.wheels?.[0] || null);
 
 //       } catch (e) {
 //         console.log(e);
@@ -114,7 +110,7 @@
 
 //   /* ================= OPEN MODAL ================= */
 //   const openPay = () => {
-//     setRandomPass(Math.floor(1000 + Math.random() * 9000).toString());
+//     setPassword(Math.floor(1000 + Math.random() * 9000).toString());
 //     setShowPay(true);
 //   };
 
@@ -125,7 +121,7 @@
 
 //       const token = localStorage.getItem("token");
 
-//       await fetch(`${API}/telegram/order`, {
+//       await fetch(`${API}/telegram/order-to-tg`, {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -140,10 +136,7 @@
 //             wheels: selectedWheels,
 //           },
 //           total: totalPrice,
-//           password: randomPass,
-//           card: "9860 3501 0000 0000",
-//           holder: "TEST",
-//           server: 100,
+//           password,
 //         }),
 //       });
 
@@ -172,7 +165,7 @@
 //       </div>
 //     );
 
-//   const ConfigBlock = ({ title, items, selected, setSelected }: any) => (
+//   const Block = ({ title, items, selected, setSelected }: any) => (
 //     <div className="mt-8">
 //       <h2 className="text-xl font-bold mb-3">{title}</h2>
 
@@ -221,45 +214,57 @@
 //           BUY
 //         </button>
 
-//         <ConfigBlock title="⚡ Power" items={configs.power} selected={selectedHp} setSelected={setSelectedHp} />
-//         <ConfigBlock title="🎨 Tuning" items={configs.tuning} selected={selectedTuning} setSelected={setSelectedTuning} />
-//         <ConfigBlock title="🛞 Wheels" items={configs.wheels} selected={selectedWheels} setSelected={setSelectedWheels} />
+//         <Block title="⚡ Power" items={configs.power} selected={selectedHp} setSelected={setSelectedHp} />
+//         <Block title="🎨 Tuning" items={configs.tuning} selected={selectedTuning} setSelected={setSelectedTuning} />
+//         <Block title="🛞 Wheels" items={configs.wheels} selected={selectedWheels} setSelected={setSelectedWheels} />
 //       </div>
 
 //       {/* ================= MODAL ================= */}
-//       {showPay && (
-//         <div className="fixed inset-0 bg-black/80 flex items-center justify-center">
-//           <div className="bg-zinc-900 p-6 rounded-2xl w-[420px]">
+// {showPay && (
+//   <div
+//     className="fixed inset-0 bg-black/80 flex items-center justify-center"
+//     onClick={() => setShowPay(false)}   // 👈 клик по фону закрывает
+//   >
+//     <div
+//       className="bg-zinc-900 p-6 rounded-2xl w-[420px] relative"
+//       onClick={(e) => e.stopPropagation()} // 👈 чтобы клик внутри не закрывал
+//     >
 
-//             <h2 className="text-xl font-bold mb-3">PAYMENT</h2>
+//       {/* ================= CLOSE BUTTON ================= */}
+//       <button
+//         onClick={() => setShowPay(false)}
+//         className="absolute top-3 right-3 text-zinc-400 hover:text-white text-xl"
+//       >
+//         ✕
+//       </button>
 
-//             <div className="text-sm space-y-1">
-//               <div>💳 9860 3501 0000 0000</div>
-//               <div>👤 TEST</div>
-//               <div>🖥 Server: 100</div>
-//               <div>🔐 Password: {randomPass}</div>
-//             </div>
+//       <h2 className="text-xl font-bold mb-3">PAYMENT</h2>
 
-//             <div className="mt-3 text-green-400 font-bold">
-//               TOTAL: ${totalPrice}
-//             </div>
+//       <div className="text-sm space-y-1">
+//         <div>💳 9860 3501 0000 0000</div>
+//         <div>👤 TEST</div>
+//         <div>🖥 Server: 100</div>
+//         <div>🔐 Password: {password}</div>
+//       </div>
 
-//             <button
-//               onClick={buy}
-//               disabled={sending}
-//               className="mt-5 w-full bg-yellow-400 text-black py-2 rounded-xl font-bold"
-//             >
-//               {sending ? "SENDING..." : "BUY NOW"}
-//             </button>
+//       <div className="mt-3 text-green-400 font-bold">
+//         TOTAL: ${totalPrice}
+//       </div>
 
-//           </div>
-//         </div>
-//       )}
+//       <button
+//         onClick={buy}
+//         disabled={sending}
+//         className="mt-5 w-full bg-yellow-400 text-black py-2 rounded-xl font-bold"
+//       >
+//         {sending ? "SENDING..." : "BUY NOW"}
+//       </button>
+
+//     </div>
+//   </div>
+// )}
 //     </div>
 //   );
 // }
-
-
 
 
 import { useEffect, useState } from "react";
@@ -282,7 +287,6 @@ type Car = {
   price: number;
   final_price?: number;
   image_url: string;
-  promo_active?: boolean;
 };
 
 type User = {
@@ -310,9 +314,13 @@ export default function CarDetail() {
 
   const [loading, setLoading] = useState(true);
 
+  /* ================= MODAL ================= */
   const [showPay, setShowPay] = useState(false);
   const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
+
+  /* 🔥 SNAPSHOT (фикс выбора) */
+  const [orderSnapshot, setOrderSnapshot] = useState<any>(null);
 
   /* ================= LOAD ================= */
   useEffect(() => {
@@ -340,7 +348,6 @@ export default function CarDetail() {
         setCar(found);
         setUser(u);
 
-        /* ================= CONFIG FIX ================= */
         setConfigs({
           power: cfg.power || [],
           tuning: cfg.tuning || [],
@@ -361,7 +368,7 @@ export default function CarDetail() {
     load();
   }, [id]);
 
-  /* ================= PRICE (как в маркете) ================= */
+  /* ================= PRICE ================= */
   const basePrice = car?.final_price ?? car?.price ?? 0;
 
   const configPrice =
@@ -374,6 +381,14 @@ export default function CarDetail() {
   /* ================= OPEN MODAL ================= */
   const openPay = () => {
     setPassword(Math.floor(1000 + Math.random() * 9000).toString());
+
+    setOrderSnapshot({
+      car,
+      power: selectedHp,
+      tuning: selectedTuning,
+      wheels: selectedWheels,
+    });
+
     setShowPay(true);
   };
 
@@ -392,12 +407,8 @@ export default function CarDetail() {
         },
         body: JSON.stringify({
           user,
-          car,
-          configs: {
-            power: selectedHp,
-            tuning: selectedTuning,
-            wheels: selectedWheels,
-          },
+          car: orderSnapshot?.car,
+          configs: orderSnapshot,
           total: totalPrice,
           password,
         }),
@@ -483,48 +494,54 @@ export default function CarDetail() {
       </div>
 
       {/* ================= MODAL ================= */}
-{showPay && (
-  <div
-    className="fixed inset-0 bg-black/80 flex items-center justify-center"
-    onClick={() => setShowPay(false)}   // 👈 клик по фону закрывает
-  >
-    <div
-      className="bg-zinc-900 p-6 rounded-2xl w-[420px] relative"
-      onClick={(e) => e.stopPropagation()} // 👈 чтобы клик внутри не закрывал
-    >
+      {showPay && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center"
+          onClick={() => setShowPay(false)}
+        >
+          <div
+            className="bg-zinc-900 p-6 rounded-2xl w-[420px] relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* CLOSE */}
+            <button
+              onClick={() => setShowPay(false)}
+              className="absolute top-3 right-3 text-white text-xl"
+            >
+              ✕
+            </button>
 
-      {/* ================= CLOSE BUTTON ================= */}
-      <button
-        onClick={() => setShowPay(false)}
-        className="absolute top-3 right-3 text-zinc-400 hover:text-white text-xl"
-      >
-        ✕
-      </button>
+            <h2 className="text-xl font-bold mb-3">PAYMENT</h2>
 
-      <h2 className="text-xl font-bold mb-3">PAYMENT</h2>
+            <div className="text-sm space-y-1">
+              <div>💳 9860 3501 0000 0000</div>
+              <div>👤 TEST</div>
+              <div>🖥 Server: 100</div>
+              <div>🔐 Password: {password}</div>
 
-      <div className="text-sm space-y-1">
-        <div>💳 9860 3501 0000 0000</div>
-        <div>👤 TEST</div>
-        <div>🖥 Server: 100</div>
-        <div>🔐 Password: {password}</div>
-      </div>
+              <div className="mt-3 text-green-400 font-bold">
+                🚘 {orderSnapshot?.car?.brand} {orderSnapshot?.car?.name}
+              </div>
 
-      <div className="mt-3 text-green-400 font-bold">
-        TOTAL: ${totalPrice}
-      </div>
+              <div>⚡ Engine: {orderSnapshot?.power?.name || "Stock"}</div>
+              <div>🎨 Tuning: {orderSnapshot?.tuning?.name || "None"}</div>
+              <div>🛞 Wheels: {orderSnapshot?.wheels?.name || "None"}</div>
+            </div>
 
-      <button
-        onClick={buy}
-        disabled={sending}
-        className="mt-5 w-full bg-yellow-400 text-black py-2 rounded-xl font-bold"
-      >
-        {sending ? "SENDING..." : "BUY NOW"}
-      </button>
+            <div className="mt-3 text-green-400 font-bold">
+              TOTAL: ${totalPrice}
+            </div>
 
-    </div>
-  </div>
-)}
+            <button
+              onClick={buy}
+              disabled={sending}
+              className="mt-5 w-full bg-yellow-400 text-black py-2 rounded-xl font-bold"
+            >
+              {sending ? "SENDING..." : "BUY NOW"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
