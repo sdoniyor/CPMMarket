@@ -315,13 +315,11 @@ export default function ProfilePage() {
 
   const [promo, setPromo] = useState("");
   const [tgLoading, setTgLoading] = useState(false);
-
-  // 🔥 NEW STATE (ВАЖНО)
   const [discount, setDiscount] = useState(0);
 
   const token = localStorage.getItem("token");
 
-  /* ================= LOAD USER ================= */
+  /* ================= LOAD ================= */
   const loadUser = async () => {
     try {
       const res = await fetch(`${API}/profile/me`, {
@@ -336,12 +334,10 @@ export default function ProfilePage() {
       }
 
       setUser(data);
-
-      // 🔥 SAFE DISCOUNT PARSE
       setDiscount(data?.active_promo?.rules?.discount ?? 0);
 
     } catch (e) {
-      console.log("PROFILE ERROR:", e);
+      console.log(e);
       window.location.href = "/auth";
     }
   };
@@ -349,6 +345,32 @@ export default function ProfilePage() {
   useEffect(() => {
     loadUser();
   }, []);
+
+  /* ================= UPLOAD AVATAR (ВОТ ОНО ВЕРНУЛОСЬ) ================= */
+  const uploadAvatar = async () => {
+    if (!file) return alert("Выбери фото");
+
+    const form = new FormData();
+    form.append("avatar", file);
+
+    const res = await fetch(`${API}/profile/upload-avatar`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: form,
+    });
+
+    const data = await res.json();
+
+    if (data?.success) {
+      setUser(data.user);
+      setFile(null);
+      setPreview(null);
+    } else {
+      alert(data?.error || "Upload error");
+    }
+  };
 
   /* ================= PROMO ================= */
   const applyPromo = async () => {
@@ -366,43 +388,38 @@ export default function ProfilePage() {
     const data = await res.json();
 
     if (data?.success) {
-      alert("Промокод активирован!");
-
       setPromo("");
 
-      // 🔥 IMPORTANT: reload user AFTER redeem
       const updated = await fetch(`${API}/profile/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const updatedUser = await updated.json();
+      const u = await updated.json();
 
-      setUser(updatedUser);
-
-      // 🔥 UPDATE DISCOUNT IMMEDIATELY
-      setDiscount(updatedUser?.active_promo?.rules?.discount ?? 0);
-
+      setUser(u);
+      setDiscount(u?.active_promo?.rules?.discount ?? 0);
     } else {
-      alert(data?.error || "Invalid promo");
+      alert(data?.error);
     }
   };
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        Loading profile...
+        Loading...
       </div>
     );
   }
 
-  const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
-
   const avatarUrl =
-    user.avatar?.startsWith("http")
+    preview ||
+    (user.avatar?.startsWith("http")
       ? user.avatar
       : user.avatar
       ? `${API}${user.avatar}`
-      : null;
+      : null);
+
+  const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
@@ -411,7 +428,7 @@ export default function ProfilePage() {
         {/* HEADER */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
 
-          <div className="w-24 h-24 rounded-2xl bg-yellow-400 text-black flex items-center justify-center overflow-hidden font-black text-3xl">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-yellow-400 text-black flex items-center justify-center font-black text-3xl">
             {avatarUrl ? (
               <img src={avatarUrl} className="w-full h-full object-cover" />
             ) : (
@@ -422,9 +439,7 @@ export default function ProfilePage() {
           <div>
             <h1 className="text-3xl font-black">{user.name}</h1>
             <p className="text-white/40">{user.email}</p>
-
-            {/* 🔥 LIVE DISCOUNT */}
-            <p className="text-yellow-400 text-sm mt-1">
+            <p className="text-yellow-400 text-sm">
               Discount: {discount}%
             </p>
           </div>
@@ -448,10 +463,6 @@ export default function ProfilePage() {
               Copy
             </button>
           </div>
-
-          <p className="text-white/40 text-sm mt-2">
-            Referrals: {user.ref_count || 0}
-          </p>
         </div>
 
         {/* PROMO */}
@@ -462,7 +473,6 @@ export default function ProfilePage() {
             <input
               value={promo}
               onChange={(e) => setPromo(e.target.value)}
-              placeholder="Enter promo"
               className="flex-1 p-2 bg-black/40 border border-white/10 rounded-xl"
             />
 
@@ -473,6 +483,40 @@ export default function ProfilePage() {
               Apply
             </button>
           </div>
+        </div>
+
+        {/* ================= AVATAR UPLOAD (ВОССТАНОВЛЕНО) ================= */}
+        <div className="mt-6 bg-white/5 border border-white/10 p-6 rounded-2xl">
+          <h2 className="font-bold mb-3">Avatar</h2>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+
+              setFile(f);
+
+              const reader = new FileReader();
+              reader.onload = () => setPreview(reader.result as string);
+              reader.readAsDataURL(f);
+            }}
+          />
+
+          {preview && (
+            <img
+              src={preview}
+              className="w-24 h-24 mt-3 rounded-xl object-cover"
+            />
+          )}
+
+          <button
+            onClick={uploadAvatar}
+            className="mt-3 bg-green-500 px-6 py-2 rounded-xl font-bold"
+          >
+            Save Avatar
+          </button>
         </div>
 
       </div>
