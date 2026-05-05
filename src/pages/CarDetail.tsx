@@ -301,20 +301,15 @@ type Car = {
   price: number;
   final_price?: number;
   image_url: string;
+  promo_active?: boolean;
 };
 
-type User = {
-  email: string;
-  name: string;
-};
-
-/* ================= COMPONENT ================= */
 export default function CarDetail() {
   const { id } = useParams();
   const nav = useNavigate();
 
   const [car, setCar] = useState<Car | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [configs, setConfigs] = useState<{
     power: ConfigItem[];
@@ -326,13 +321,12 @@ export default function CarDetail() {
   const [selectedTuning, setSelectedTuning] = useState<ConfigItem | null>(null);
   const [selectedWheels, setSelectedWheels] = useState<ConfigItem | null>(null);
 
-  const [loading, setLoading] = useState(true);
-
   /* ================= MODAL ================= */
   const [showPay, setShowPay] = useState(false);
   const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
-  const [orderSnapshot, setOrderSnapshot] = useState<any>(null);
+
+  const [snapshot, setSnapshot] = useState<any>(null);
 
   /* ================= LOAD ================= */
   useEffect(() => {
@@ -343,28 +337,26 @@ export default function CarDetail() {
         const token = localStorage.getItem("token");
         if (!token) return nav("/login");
 
-        const headers = { Authorization: `Bearer ${token}` };
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
 
-        const [carsRes, cfgRes, userRes] = await Promise.all([
+        const [carsRes, cfgRes] = await Promise.all([
           fetch(`${API}/market/cars`, { headers }),
           fetch(`${API}/market/configs`, { headers }),
-          fetch(`${API}/profile/me`, { headers }),
         ]);
 
         const cars = await carsRes.json();
         const cfg = await cfgRes.json();
-        const u = await userRes.json();
 
         const found = cars.find((c: Car) => String(c.id) === String(id));
 
         setCar(found);
-        setUser(u);
 
-        /* ================= SAFE CONFIG ================= */
         const safeCfg = {
-          power: Array.isArray(cfg?.power) ? cfg.power : [],
-          tuning: Array.isArray(cfg?.tuning) ? cfg.tuning : [],
-          wheels: Array.isArray(cfg?.wheels) ? cfg.wheels : [],
+          power: Array.isArray(cfg.power) ? cfg.power : [],
+          tuning: Array.isArray(cfg.tuning) ? cfg.tuning : [],
+          wheels: Array.isArray(cfg.wheels) ? cfg.wheels : [],
         };
 
         setConfigs(safeCfg);
@@ -383,7 +375,7 @@ export default function CarDetail() {
     load();
   }, [id]);
 
-  /* ================= PRICE ================= */
+  /* ================= PRICE (как в маркете) ================= */
   const basePrice = car?.final_price ?? car?.price ?? 0;
 
   const configPrice =
@@ -397,11 +389,12 @@ export default function CarDetail() {
   const openPay = () => {
     setPassword(Math.floor(1000 + Math.random() * 9000).toString());
 
-    setOrderSnapshot({
+    setSnapshot({
       car,
       power: selectedHp,
       tuning: selectedTuning,
       wheels: selectedWheels,
+      total: totalPrice,
     });
 
     setShowPay(true);
@@ -421,17 +414,15 @@ export default function CarDetail() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          user,
-          car: orderSnapshot?.car,
-          configs: orderSnapshot,
-          total: totalPrice,
+          car: snapshot.car,
+          configs: snapshot,
+          total: snapshot.total,
           password,
         }),
       });
 
       alert("ORDER SENT");
       setShowPay(false);
-
     } catch (e) {
       console.log(e);
     } finally {
@@ -466,10 +457,10 @@ export default function CarDetail() {
             <button
               key={i.id}
               onClick={() => setSelected(i)}
-              className={`p-3 rounded-xl border transition text-left ${
+              className={`p-3 rounded-xl border transition ${
                 selected?.id === i.id
                   ? "border-green-400 bg-green-500/10"
-                  : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+                  : "border-zinc-800 bg-zinc-900"
               }`}
             >
               <div className="text-sm font-semibold">{i.name}</div>
@@ -492,8 +483,8 @@ export default function CarDetail() {
           {car.brand} {car.name}
         </h1>
 
-        {/* IMAGE (FIXED SIZE) */}
-        <div className="mt-5 rounded-2xl overflow-hidden bg-zinc-900 h-[260px] md:h-[340px]">
+        {/* IMAGE (НЕ ОГРОМНАЯ) */}
+        <div className="mt-5 rounded-2xl overflow-hidden bg-zinc-900 h-[240px] md:h-[320px]">
           <img
             src={car.image_url}
             className="w-full h-full object-cover"
@@ -522,8 +513,10 @@ export default function CarDetail() {
       {/* ================= MODAL ================= */}
       {showPay && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+
           <div className="bg-zinc-900 rounded-2xl w-full max-w-md p-5 relative">
 
+            {/* CLOSE */}
             <button
               onClick={() => setShowPay(false)}
               className="absolute top-3 right-3 text-white text-xl"
@@ -540,16 +533,16 @@ export default function CarDetail() {
               <div>🔐 Password: {password}</div>
 
               <div className="mt-3 text-green-400 font-bold">
-                🚘 {orderSnapshot?.car?.brand} {orderSnapshot?.car?.name}
+                🚘 {snapshot?.car?.brand} {snapshot?.car?.name}
               </div>
 
-              <div>⚡ {orderSnapshot?.power?.name}</div>
-              <div>🎨 {orderSnapshot?.tuning?.name}</div>
-              <div>🛞 {orderSnapshot?.wheels?.name}</div>
+              <div>⚡ {snapshot?.power?.name}</div>
+              <div>🎨 {snapshot?.tuning?.name}</div>
+              <div>🛞 {snapshot?.wheels?.name}</div>
             </div>
 
             <div className="mt-4 text-green-400 font-bold text-lg">
-              TOTAL: ${totalPrice}
+              TOTAL: ${snapshot?.total}
             </div>
 
             <button
