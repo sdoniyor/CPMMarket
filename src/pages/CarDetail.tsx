@@ -351,6 +351,7 @@ type ConfigItem = {
   id: number;
   name: string;
   price: number;
+  type?: string;
 };
 
 type Car = {
@@ -362,6 +363,7 @@ type Car = {
   image_url: string;
 };
 
+/* ================= COMPONENT ================= */
 export default function CarDetail() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -369,16 +371,21 @@ export default function CarDetail() {
   const [car, setCar] = useState<Car | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [configs, setConfigs] = useState({
-    power: [] as ConfigItem[],
-    tuning: [] as ConfigItem[],
-    wheels: [] as ConfigItem[],
+  const [configs, setConfigs] = useState<{
+    power: ConfigItem[];
+    tuning: ConfigItem[];
+    wheels: ConfigItem[];
+  }>({
+    power: [],
+    tuning: [],
+    wheels: [],
   });
 
   const [selectedHp, setSelectedHp] = useState<ConfigItem | null>(null);
   const [selectedTuning, setSelectedTuning] = useState<ConfigItem | null>(null);
   const [selectedWheels, setSelectedWheels] = useState<ConfigItem | null>(null);
 
+  /* ================= LOAD ================= */
   useEffect(() => {
     const load = async () => {
       try {
@@ -396,25 +403,46 @@ export default function CarDetail() {
           fetch(`${API}/market/configs`, { headers }),
         ]);
 
-        const cars = await carsRes.json();
+        const carsData = await carsRes.json();
         const cfg = await configsRes.json();
 
-        const found = cars.find((c: Car) => String(c.id) === String(id));
+        const foundCar = carsData.find(
+          (c: Car) => String(c.id) === String(id)
+        );
 
-        setCar(found);
+        setCar(foundCar || null);
 
-        setConfigs({
-          power: cfg?.power || [],
-          tuning: cfg?.tuning || [],
-          wheels: cfg?.wheels || [],
-        });
+        /* ================= CONFIG FIX (ВАЖНО) ================= */
+        let power: ConfigItem[] = [];
+        let tuning: ConfigItem[] = [];
+        let wheels: ConfigItem[] = [];
 
-        setSelectedHp(cfg?.power?.[0] ?? null);
-        setSelectedTuning(cfg?.tuning?.[0] ?? null);
-        setSelectedWheels(cfg?.wheels?.[0] ?? null);
+        // CASE 1: grouped API
+        if (cfg?.power || cfg?.tuning || cfg?.wheels) {
+          power = cfg.power || [];
+          tuning = cfg.tuning || [];
+          wheels = cfg.wheels || [];
+        }
+
+        // CASE 2: flat DB array
+        else if (Array.isArray(cfg)) {
+          for (const item of cfg) {
+            const type = String(item.type || "").toLowerCase();
+
+            if (type === "power") power.push(item);
+            else if (type === "tuning") tuning.push(item);
+            else if (type === "wheels") wheels.push(item);
+          }
+        }
+
+        setConfigs({ power, tuning, wheels });
+
+        setSelectedHp(power[0] || null);
+        setSelectedTuning(tuning[0] || null);
+        setSelectedWheels(wheels[0] || null);
 
       } catch (e) {
-        console.log(e);
+        console.log("LOAD ERROR:", e);
       } finally {
         setLoading(false);
       }
@@ -423,8 +451,7 @@ export default function CarDetail() {
     load();
   }, [id]);
 
-  /* ================= PRICE (КАК В MARKET) ================= */
-
+  /* ================= PRICE (как Market) ================= */
   const basePrice = car?.final_price ?? car?.price ?? 0;
 
   const configPrice =
@@ -463,14 +490,14 @@ export default function CarDetail() {
           className="w-full mt-4 rounded-2xl"
         />
 
-        {/* PRICE (как Market) */}
+        {/* PRICE */}
         <div className="mt-6">
           <div className="text-4xl font-black text-green-400">
             ${totalPrice}
           </div>
 
           {car.final_price && car.price !== car.final_price && (
-            <div className="line-through text-gray-500">
+            <div className="text-gray-500 line-through">
               ${car.price}
             </div>
           )}
@@ -481,33 +508,66 @@ export default function CarDetail() {
         </button>
 
         {/* CONFIGS */}
-        <div className="mt-10">
-          <h2>Power</h2>
-          {configs.power.map((i) => (
-            <button key={i.id} onClick={() => setSelectedHp(i)}>
-              {i.name} +${i.price}
-            </button>
-          ))}
-        </div>
+        <ConfigBlock
+          title="Power"
+          items={configs.power}
+          selected={selectedHp}
+          setSelected={setSelectedHp}
+        />
 
-        <div className="mt-6">
-          <h2>Tuning</h2>
-          {configs.tuning.map((i) => (
-            <button key={i.id} onClick={() => setSelectedTuning(i)}>
-              {i.name} +${i.price}
-            </button>
-          ))}
-        </div>
+        <ConfigBlock
+          title="Tuning"
+          items={configs.tuning}
+          selected={selectedTuning}
+          setSelected={setSelectedTuning}
+        />
 
-        <div className="mt-6">
-          <h2>Wheels</h2>
-          {configs.wheels.map((i) => (
-            <button key={i.id} onClick={() => setSelectedWheels(i)}>
-              {i.name} +${i.price}
-            </button>
-          ))}
-        </div>
+        <ConfigBlock
+          title="Wheels"
+          items={configs.wheels}
+          selected={selectedWheels}
+          setSelected={setSelectedWheels}
+        />
       </div>
+    </div>
+  );
+}
+
+/* ================= CONFIG UI ================= */
+function ConfigBlock({
+  title,
+  items,
+  selected,
+  setSelected,
+}: any) {
+  return (
+    <div className="mt-8">
+      <h2 className="text-xl font-bold mb-4">{title}</h2>
+
+      {items.length === 0 ? (
+        <div className="text-gray-500">Нет опций</div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-4">
+          {items.map((i: ConfigItem) => {
+            const active = selected?.id === i.id;
+
+            return (
+              <button
+                key={i.id}
+                onClick={() => setSelected(i)}
+                className={`p-4 rounded-xl border ${
+                  active
+                    ? "border-green-400 bg-green-500/10"
+                    : "border-zinc-800 bg-zinc-900"
+                }`}
+              >
+                <div>{i.name}</div>
+                <div className="text-green-400">+${i.price}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
