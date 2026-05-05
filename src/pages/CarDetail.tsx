@@ -346,6 +346,7 @@ import Navbar from "../components/Navbar";
 
 const API = "https://cpmmarker.onrender.com";
 
+/* ================= TYPES ================= */
 type ConfigItem = {
   id: number;
   name: string;
@@ -372,6 +373,7 @@ type User = {
   active_promo?: Promo | null;
 };
 
+/* ================= HELPERS ================= */
 const parseCarIds = (input: any): number[] => {
   if (!input) return [];
   if (Array.isArray(input)) return input.map(Number).filter(Boolean);
@@ -386,6 +388,7 @@ const parseCarIds = (input: any): number[] => {
   return [];
 };
 
+/* ================= COMPONENT ================= */
 export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -409,6 +412,7 @@ export default function CarDetail() {
   const [sending, setSending] = useState(false);
   const [randomPass, setRandomPass] = useState("");
 
+  /* ================= LOAD ================= */
   useEffect(() => {
     const load = async () => {
       try {
@@ -457,15 +461,19 @@ export default function CarDetail() {
         setCar(foundCar);
         setUser(userData);
 
-        setConfigs({
+        /* ================= CONFIG FIX ================= */
+        const safeConfigs = {
           power: Array.isArray(configsData?.power) ? configsData.power : [],
           tuning: Array.isArray(configsData?.tuning) ? configsData.tuning : [],
           wheels: Array.isArray(configsData?.wheels) ? configsData.wheels : [],
-        });
+        };
 
-        setSelectedHp(configsData?.power?.[0] || null);
-        setSelectedTuning(configsData?.tuning?.[0] || null);
-        setSelectedWheels(configsData?.wheels?.[0] || null);
+        setConfigs(safeConfigs);
+
+        setSelectedHp(safeConfigs.power[0] ?? null);
+        setSelectedTuning(safeConfigs.tuning[0] ?? null);
+        setSelectedWheels(safeConfigs.wheels[0] ?? null);
+
       } catch (e: any) {
         console.error(e);
         setError(e.message || "Ошибка загрузки");
@@ -477,19 +485,20 @@ export default function CarDetail() {
     load();
   }, [id, navigate]);
 
+  /* ================= PROMO ================= */
   const promo = user?.active_promo ?? null;
   const discount = promo?.discount ?? 0;
   const promoCars = parseCarIds(promo?.car_ids);
-  const hasRestriction = promoCars.length > 0;
 
   const canUsePromo =
     !!promo &&
     discount > 0 &&
-    (!hasRestriction || promoCars.includes(Number(id)));
+    (!promoCars.length || promoCars.includes(Number(id)));
 
   const finalDiscount = canUsePromo ? discount : 0;
 
-  const basePrice = Number(car?.final_price ?? car?.price ?? 0);
+  /* ================= PRICE ================= */
+  const basePrice = Number(car?.price || 0);
 
   const configPrice =
     (selectedHp?.price || 0) +
@@ -503,10 +512,9 @@ export default function CarDetail() {
 
   const totalPrice = discountedBase + configPrice;
 
+  /* ================= ORDER ================= */
   const handleOpenPay = () => {
-    setRandomPass(
-      Math.floor(1000 + Math.random() * 9000).toString()
-    );
+    setRandomPass(Math.floor(1000 + Math.random() * 9000).toString());
     setShowPay(true);
   };
 
@@ -546,6 +554,7 @@ export default function CarDetail() {
     }
   };
 
+  /* ================= CONFIG UI ================= */
   const renderConfig = (
     title: string,
     items: ConfigItem[],
@@ -555,44 +564,49 @@ export default function CarDetail() {
     <div className="mt-8">
       <h2 className="text-xl font-bold mb-4 text-zinc-200">{title}</h2>
 
-      <div className="grid md:grid-cols-3 gap-4">
-        {items.map((item) => {
-          const active = selected?.id === item.id;
+      {items.length === 0 ? (
+        <div className="text-zinc-500 text-sm">Нет опций</div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-4">
+          {items.map((item) => {
+            const active = selected?.id === item.id;
 
-          return (
-            <button
-              key={item.id}
-              onClick={() => setter(item)}
-              className={`rounded-2xl p-4 border transition ${
-                active
-                  ? "border-green-400 bg-green-500/10"
-                  : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
-              }`}
-            >
-              <div className="font-semibold">{item.name}</div>
-              <div className="text-green-400 mt-2">+${item.price}</div>
-            </button>
-          );
-        })}
-      </div>
+            return (
+              <button
+                key={item.id}
+                onClick={() => setter(item)}
+                className={`rounded-2xl p-4 border transition ${
+                  active
+                    ? "border-green-400 bg-green-500/10"
+                    : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+                }`}
+              >
+                <div className="font-semibold">{item.name}</div>
+                <div className="text-green-400 mt-2">
+                  +${item.price}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 
-  if (loading) {
+  /* ================= UI ================= */
+  if (loading)
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center text-2xl">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         🚘 Loading...
       </div>
     );
-  }
 
-  if (error || !car) {
+  if (error || !car)
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         {error || "Car not found"}
       </div>
     );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white">
@@ -604,20 +618,15 @@ export default function CarDetail() {
         </h1>
 
         <div className="mt-6 rounded-3xl overflow-hidden bg-zinc-950 h-[420px] flex items-center justify-center">
-          {car.image_url ? (
-            <img
-              src={car.image_url}
-              alt={car.name}
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="text-zinc-600 text-3xl font-bold">
-              🚘 No Image
-            </div>
-          )}
+          <img
+            src={car.image_url}
+            alt={car.name}
+            onError={(e) => {
+              e.currentTarget.src =
+                "https://via.placeholder.com/800x400?text=No+Image";
+            }}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="mt-8 rounded-3xl bg-zinc-900 border border-zinc-800 p-6">
@@ -651,24 +660,22 @@ export default function CarDetail() {
       </div>
 
       {showPay && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="w-full max-w-md rounded-3xl bg-zinc-900 border border-zinc-700 p-6">
-            <h3 className="text-2xl font-bold mb-5">Confirm Order</h3>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6">
+          <div className="w-full max-w-md bg-zinc-900 p-6 rounded-3xl border border-zinc-700">
+            <h3 className="text-2xl font-bold mb-4">Confirm Order</h3>
 
-            <div className="space-y-2 text-zinc-300">
-              {selectedConfigs.map((c, i) => (
-                <div key={i}>{c}</div>
-              ))}
-            </div>
+            {selectedConfigs.map((c, i) => (
+              <div key={i}>{c}</div>
+            ))}
 
-            <div className="mt-6 text-3xl font-black text-green-400">
+            <div className="mt-4 text-green-400 text-2xl font-bold">
               ${totalPrice}
             </div>
 
             <button
               onClick={sendToTelegram}
               disabled={sending}
-              className="mt-6 w-full py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black transition"
+              className="mt-6 w-full py-3 rounded-xl bg-yellow-400 text-black font-bold"
             >
               {sending ? "SENDING..." : "CONFIRM"}
             </button>
