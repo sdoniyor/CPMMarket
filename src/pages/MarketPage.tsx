@@ -141,6 +141,8 @@ export default function Market() {
 
         const data = await res.json();
 
+        console.log("CARS DATA:", data);
+
         if (!Array.isArray(data)) {
           console.error("Wrong API format:", data);
           throw new Error("API вернул не массив");
