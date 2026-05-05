@@ -363,7 +363,6 @@ type Car = {
   image_url: string;
 };
 
-/* ================= COMPONENT ================= */
 export default function CarDetail() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -406,34 +405,51 @@ export default function CarDetail() {
         const carsData = await carsRes.json();
         const cfg = await configsRes.json();
 
+        /* ================= DEBUG LOGS ================= */
+        console.log("🚗 CARS RESPONSE:", carsData);
+        console.log("⚙️ CONFIG RAW RESPONSE:", cfg);
+        console.log("⚙️ CONFIG IS ARRAY:", Array.isArray(cfg));
+
         const foundCar = carsData.find(
           (c: Car) => String(c.id) === String(id)
         );
 
+        console.log("🎯 SELECTED CAR:", foundCar);
+
         setCar(foundCar || null);
 
-        /* ================= CONFIG FIX (ВАЖНО) ================= */
+        /* ================= CONFIG DEBUG ================= */
         let power: ConfigItem[] = [];
         let tuning: ConfigItem[] = [];
         let wheels: ConfigItem[] = [];
 
-        // CASE 1: grouped API
         if (cfg?.power || cfg?.tuning || cfg?.wheels) {
+          console.log("📦 FORMAT: GROUPED OBJECT");
+
           power = cfg.power || [];
           tuning = cfg.tuning || [];
           wheels = cfg.wheels || [];
-        }
-
-        // CASE 2: flat DB array
+        } 
         else if (Array.isArray(cfg)) {
+          console.log("📦 FORMAT: FLAT ARRAY");
+
           for (const item of cfg) {
+            console.log("ITEM:", item);
+
             const type = String(item.type || "").toLowerCase();
 
             if (type === "power") power.push(item);
             else if (type === "tuning") tuning.push(item);
             else if (type === "wheels") wheels.push(item);
           }
+        } 
+        else {
+          console.log("❌ UNKNOWN CONFIG FORMAT");
         }
+
+        console.log("⚡ POWER:", power);
+        console.log("🎨 TUNING:", tuning);
+        console.log("🛞 WHEELS:", wheels);
 
         setConfigs({ power, tuning, wheels });
 
@@ -442,7 +458,7 @@ export default function CarDetail() {
         setSelectedWheels(wheels[0] || null);
 
       } catch (e) {
-        console.log("LOAD ERROR:", e);
+        console.log("❌ LOAD ERROR:", e);
       } finally {
         setLoading(false);
       }
@@ -451,7 +467,7 @@ export default function CarDetail() {
     load();
   }, [id]);
 
-  /* ================= PRICE (как Market) ================= */
+  /* ================= PRICE ================= */
   const basePrice = car?.final_price ?? car?.price ?? 0;
 
   const configPrice =
@@ -485,67 +501,32 @@ export default function CarDetail() {
           {car.brand} {car.name}
         </h1>
 
-        <img
-          src={car.image_url}
-          className="w-full mt-4 rounded-2xl"
-        />
+        <img src={car.image_url} className="w-full mt-4 rounded-2xl" />
 
         {/* PRICE */}
-        <div className="mt-6">
-          <div className="text-4xl font-black text-green-400">
-            ${totalPrice}
-          </div>
-
-          {car.final_price && car.price !== car.final_price && (
-            <div className="text-gray-500 line-through">
-              ${car.price}
-            </div>
-          )}
+        <div className="mt-6 text-4xl font-black text-green-400">
+          ${totalPrice}
         </div>
 
-        <button className="mt-6 bg-yellow-400 text-black px-6 py-3 rounded-xl font-black">
-          BUY
-        </button>
-
         {/* CONFIGS */}
-        <ConfigBlock
-          title="Power"
-          items={configs.power}
-          selected={selectedHp}
-          setSelected={setSelectedHp}
-        />
-
-        <ConfigBlock
-          title="Tuning"
-          items={configs.tuning}
-          selected={selectedTuning}
-          setSelected={setSelectedTuning}
-        />
-
-        <ConfigBlock
-          title="Wheels"
-          items={configs.wheels}
-          selected={selectedWheels}
-          setSelected={setSelectedWheels}
-        />
+        <ConfigBlock title="Power" items={configs.power} selected={selectedHp} setSelected={setSelectedHp} />
+        <ConfigBlock title="Tuning" items={configs.tuning} selected={selectedTuning} setSelected={setSelectedTuning} />
+        <ConfigBlock title="Wheels" items={configs.wheels} selected={selectedWheels} setSelected={setSelectedWheels} />
       </div>
     </div>
   );
 }
 
 /* ================= CONFIG UI ================= */
-function ConfigBlock({
-  title,
-  items,
-  selected,
-  setSelected,
-}: any) {
+function ConfigBlock({ title, items, selected, setSelected }: any) {
   return (
     <div className="mt-8">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
 
       {items.length === 0 ? (
-        <div className="text-gray-500">Нет опций</div>
+        <div className="text-red-400">
+          Нет опций (смотри console.log)
+        </div>
       ) : (
         <div className="grid md:grid-cols-3 gap-4">
           {items.map((i: ConfigItem) => {
