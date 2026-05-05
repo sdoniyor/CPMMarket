@@ -4,118 +4,81 @@
 
 // const API = "https://cpmmarker.onrender.com";
 
-// /* ================= TYPES ================= */
 // type Car = {
 //   id: number;
 //   name: string;
 //   brand: string;
 //   price: number;
 //   image_url: string;
-// };
-
-// type Promo = {
-//   discount: number;
-//   car_ids: string | number[] | null;
-// };
-
-// type User = {
-//   active_promo?: Promo | null;
-// };
-
-// /* ================= PARSER ================= */
-// const parseCarIds = (input: any): number[] => {
-//   if (!input) return [];
-//   if (Array.isArray(input)) return input.map(Number);
-
-//   return String(input)
-//     .split(",")
-//     .map(Number)
-//     .filter(Boolean);
-// };
-
-// /* ================= CHECK ================= */
-// const canUsePromo = (carId: number, promo?: Promo | null) => {
-//   if (!promo) return false;
-
-//   const discount = Number(promo.discount);
-//   if (!discount) return false;
-
-//   const cars = parseCarIds(promo.car_ids);
-
-//   if (cars.length === 0) return true;
-
-//   return cars.includes(carId);
+//   type: "premium" | "coin" | "default";
+//   final_price?: number;
+//   promo_active?: boolean;
 // };
 
 // export default function Market() {
 //   const [cars, setCars] = useState<Car[]>([]);
-//   const [user, setUser] = useState<User | null>(null);
-
 //   const nav = useNavigate();
 
 //   useEffect(() => {
 //     const load = async () => {
-//       const carsRes = await fetch(`${API}/market/cars`);
-//       const userRes = await fetch(`${API}/profile/me`, {
+//       const res = await fetch(`${API}/market/cars`, {
 //         headers: {
 //           Authorization: `Bearer ${localStorage.getItem("token")}`,
 //         },
 //       });
 
-//       setCars(await carsRes.json());
-//       setUser(await userRes.json());
+//       setCars(await res.json());
 //     };
 
 //     load();
 //   }, []);
 
-//   const promo = user?.active_promo;
-
 //   return (
 //     <div className="p-6 text-white bg-black min-h-screen">
 //       <div className="grid grid-cols-3 gap-4">
-//         {cars.map((car) => {
-//           const base = car.price;
-//           const active = canUsePromo(car.id, promo);
 
-//           const discount = Number(promo?.discount || 0);
+//         {cars.map((car) => (
+//           <div
+//             key={car.id}
+//             onClick={() => nav(`/car/${car.id}`)}
+//             className="bg-[#111] p-4 rounded cursor-pointer"
+//           >
+//             <img src={car.image_url} />
 
-//           const price = active
-//             ? Math.floor(base - (base * discount) / 100)
-//             : base;
+//             <div>{car.brand} {car.name}</div>
 
-//           return (
-//             <div
-//               key={car.id}
-//               onClick={() => nav(`/car/${car.id}`)}
-//               className="bg-[#111] p-4 rounded cursor-pointer"
-//             >
-//               <img src={car.image_url} />
-
-//               <div>{car.brand} {car.name}</div>
-
-//               <div>
-//                 {active && (
-//                   <span className="line-through text-gray-400 mr-2">
-//                     ${base}
-//                   </span>
-//                 )}
-
-//                 <span className="text-green-400">${price}</span>
-//               </div>
-
-//               {active && (
-//                 <div className="text-yellow-400 text-sm">
-//                   🔥 PROMO ACTIVE
-//                 </div>
+//             <div>
+//               {car.promo_active && (
+//                 <span className="line-through text-gray-400 mr-2">
+//                   ${car.price}
+//                 </span>
 //               )}
+
+//               <span className="text-green-400">
+//                 ${car.final_price ?? car.price}
+//               </span>
 //             </div>
-//           );
-//         })}
+
+//             <div className="text-xs text-gray-400">
+//               Type: {car.type}
+//             </div>
+
+//             {car.promo_active && (
+//               <div className="text-yellow-400 text-sm">
+//                 🔥 PROMO ACTIVE
+//               </div>
+//             )}
+//           </div>
+//         ))}
+
 //       </div>
 //     </div>
 //   );
 // }
+
+
+
+
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -135,60 +98,141 @@ type Car = {
 
 export default function Market() {
   const [cars, setCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const nav = useNavigate();
 
   useEffect(() => {
-    const load = async () => {
-      const res = await fetch(`${API}/market/cars`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+    const loadCars = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-      setCars(await res.json());
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(`${API}/market/cars`, {
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {},
+        });
+
+        // если не ок
+        if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem("token");
+            nav("/login");
+            return;
+          }
+
+          const txt = await res.text();
+          throw new Error(txt || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        // защита от "find is not a function"
+        if (!Array.isArray(data)) {
+          console.error("API returned:", data);
+          throw new Error("Неверный формат данных");
+        }
+
+        setCars(data);
+      } catch (err: any) {
+        console.error("LOAD ERROR:", err);
+        setError(err.message || "Ошибка загрузки");
+        setCars([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    load();
-  }, []);
+    loadCars();
+  }, [nav]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white flex items-center justify-center text-xl">
+        Загрузка машин...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="bg-red-500/10 border border-red-500 rounded-2xl p-6 text-center max-w-md">
+          <div className="text-red-400 text-xl font-bold mb-2">Ошибка</div>
+          <div className="text-zinc-300">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 text-white bg-black min-h-screen">
-      <div className="grid grid-cols-3 gap-4">
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-white px-6 py-10">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-4xl font-bold mb-2">🚘 Car Market</h1>
+        <p className="text-zinc-400 mb-10">
+          Выберите автомобиль своей мечты
+        </p>
 
-        {cars.map((car) => (
-          <div
-            key={car.id}
-            onClick={() => nav(`/car/${car.id}`)}
-            className="bg-[#111] p-4 rounded cursor-pointer"
-          >
-            <img src={car.image_url} />
-
-            <div>{car.brand} {car.name}</div>
-
-            <div>
-              {car.promo_active && (
-                <span className="line-through text-gray-400 mr-2">
-                  ${car.price}
-                </span>
-              )}
-
-              <span className="text-green-400">
-                ${car.final_price ?? car.price}
-              </span>
-            </div>
-
-            <div className="text-xs text-gray-400">
-              Type: {car.type}
-            </div>
-
-            {car.promo_active && (
-              <div className="text-yellow-400 text-sm">
-                🔥 PROMO ACTIVE
-              </div>
-            )}
+        {cars.length === 0 ? (
+          <div className="text-zinc-500 text-center py-20 text-lg">
+            Машин пока нет
           </div>
-        ))}
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {cars.map((car) => (
+              <div
+                key={car.id}
+                onClick={() => nav(`/car/${car.id}`)}
+                className="group cursor-pointer rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-green-400 transition hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/10"
+              >
+                <div className="relative h-56 bg-black overflow-hidden">
+                  <img
+                    src={car.image_url}
+                    alt={car.name}
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://via.placeholder.com/500x300?text=No+Image";
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                  />
 
+                  {car.promo_active && (
+                    <div className="absolute top-3 right-3 bg-yellow-400 text-black font-bold text-xs px-3 py-1 rounded-full shadow">
+                      🔥 SALE
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-5">
+                  <div className="text-lg font-bold mb-1">
+                    {car.brand} {car.name}
+                  </div>
+
+                  <div className="text-sm text-zinc-400 mb-4 capitalize">
+                    {car.type}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {car.promo_active && (
+                      <span className="text-zinc-500 line-through text-sm">
+                        ${car.price}
+                      </span>
+                    )}
+
+                    <span className="text-green-400 font-bold text-2xl">
+                      ${car.final_price ?? car.price}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
