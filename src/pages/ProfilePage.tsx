@@ -272,7 +272,11 @@ export default function ProfilePage() {
 
   const [promo, setPromo] = useState("");
   const [tgLoading, setTgLoading] = useState(false);
+
   const [discount, setDiscount] = useState(0);
+
+  // 🔥 NEW: notification state
+  const [promoNotice, setPromoNotice] = useState<string | null>(null);
 
   const token = localStorage.getItem("token");
 
@@ -311,9 +315,7 @@ export default function ProfilePage() {
 
     const res = await fetch(`${API}/profile/upload-avatar`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: form,
     });
 
@@ -323,8 +325,6 @@ export default function ProfilePage() {
       setUser(data.user);
       setFile(null);
       setPreview(null);
-    } else {
-      alert(data?.error || "Upload error");
     }
   };
 
@@ -335,9 +335,7 @@ export default function ProfilePage() {
     try {
       const res = await fetch(`${API}/profile/telegram/link`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -376,6 +374,13 @@ export default function ProfilePage() {
 
       setUser(u);
       setDiscount(u?.active_promo?.rules?.discount ?? 0);
+
+      // 🔥 SUCCESS NOTIFICATION
+      setPromoNotice(
+        `🎉 Promo activated! -${u?.active_promo?.rules?.discount || 0}% discount`
+      );
+
+      setTimeout(() => setPromoNotice(null), 3000);
     } else {
       alert(data?.error || "Invalid promo");
     }
@@ -403,6 +408,13 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
       <div className="max-w-4xl mx-auto space-y-6">
 
+        {/* ================= NOTIFICATION ================= */}
+        {promoNotice && (
+          <div className="bg-green-500/20 border border-green-500 text-green-300 px-4 py-3 rounded-xl font-bold">
+            {promoNotice}
+          </div>
+        )}
+
         {/* ================= HEADER ================= */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
 
@@ -418,8 +430,9 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-black">{user.name}</h1>
             <p className="text-white/40">{user.email}</p>
 
-            <p className="text-yellow-400 text-sm mt-1">
-              Discount: {discount}%
+            {/* 🔥 DISCOUNT UI */}
+            <p className="text-yellow-400 text-lg font-bold mt-1">
+              {discount > 0 ? `🔥 Discount: -${discount}%` : "No active discount"}
             </p>
           </div>
         </div>
@@ -460,11 +473,8 @@ export default function ProfilePage() {
             <button
               onClick={connectTelegram}
               disabled={tgLoading}
-              className="bg-blue-500 px-4 py-2 rounded-xl font-bold disabled:opacity-50 flex items-center gap-2"
+              className="bg-blue-500 px-4 py-2 rounded-xl font-bold"
             >
-              {tgLoading && (
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              )}
               {tgLoading ? "Connecting..." : "Connect Telegram"}
             </button>
           )}
@@ -489,40 +499,6 @@ export default function ProfilePage() {
               Apply
             </button>
           </div>
-        </div>
-
-        {/* ================= AVATAR ================= */}
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-          <h2 className="font-bold mb-3">Upload Avatar</h2>
-
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-
-              setFile(f);
-
-              const reader = new FileReader();
-              reader.onload = () => setPreview(reader.result as string);
-              reader.readAsDataURL(f);
-            }}
-          />
-
-          {preview && (
-            <img
-              src={preview}
-              className="w-24 h-24 mt-3 rounded-xl object-cover"
-            />
-          )}
-
-          <button
-            onClick={uploadAvatar}
-            className="mt-3 bg-green-500 px-6 py-2 rounded-xl font-bold"
-          >
-            Save Avatar
-          </button>
         </div>
 
       </div>
