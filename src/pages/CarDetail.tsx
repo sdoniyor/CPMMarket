@@ -488,7 +488,6 @@ export default function CarDetail() {
           />
         </div>
 
-        {/* PROMO BADGE */}
         {car.promo_active && (
           <div className="mt-3 text-green-400 font-bold">
             🔥 PROMO ACTIVE
@@ -512,9 +511,10 @@ export default function CarDetail() {
 
       </div>
 
-      {/* MODAL */}
+      {/* ================= MODAL (как было) ================= */}
       {showPay && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4">
+
           <div className="bg-zinc-900 rounded-2xl w-full max-w-md p-5 relative">
 
             <button
@@ -527,10 +527,18 @@ export default function CarDetail() {
             <h2 className="text-xl font-bold mb-4">PAYMENT</h2>
 
             <div className="text-sm space-y-1 text-zinc-300">
+              <div>💳 9860 3501 0000 0000</div>
+              <div>👤 TEST</div>
+              <div>🖥 Server: 100</div>
               <div>🔐 Password: {password}</div>
+
               <div className="mt-3 text-green-400 font-bold">
                 🚘 {snapshot?.car?.brand} {snapshot?.car?.name}
               </div>
+
+              <div>⚡ {snapshot?.power?.name}</div>
+              <div>🎨 {snapshot?.tuning?.name}</div>
+              <div>🛞 {snapshot?.wheels?.name}</div>
             </div>
 
             <div className="mt-4 text-green-400 font-bold text-lg">
