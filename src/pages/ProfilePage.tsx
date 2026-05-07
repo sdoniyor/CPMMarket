@@ -259,6 +259,7 @@ type User = {
     promo_code: string;
     rules: {
       discount: number;
+      allowed_types?: string[];
     };
   } | null;
 };
@@ -268,13 +269,18 @@ export default function ProfilePage() {
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+
+  const [promo, setPromo] = useState("");
+  const [tgLoading, setTgLoading] = useState(false);
+
+  const [discount, setDiscount] = useState(0);
+  const [promoNotice, setPromoNotice] = useState<string | null>(null);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const token = localStorage.getItem("token");
 
-  /* ================= LOAD USER ================= */
+  /* ================= LOAD ================= */
   const loadUser = async () => {
     const res = await fetch(`${API}/profile/me`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -288,6 +294,7 @@ export default function ProfilePage() {
     }
 
     setUser(data);
+    setDiscount(data?.active_promo?.rules?.discount ?? 0);
   };
 
   useEffect(() => {
@@ -299,7 +306,7 @@ export default function ProfilePage() {
     fileRef.current?.click();
   };
 
-  /* ================= SELECT IMAGE ================= */
+  /* ================= SELECT FILE ================= */
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -311,11 +318,9 @@ export default function ProfilePage() {
     reader.readAsDataURL(f);
   };
 
-  /* ================= UPLOAD AVATAR ================= */
+  /* ================= UPLOAD ================= */
   const uploadAvatar = async () => {
     if (!file) return;
-
-    setUploading(true);
 
     const form = new FormData();
     form.append("avatar", file);
@@ -335,8 +340,56 @@ export default function ProfilePage() {
       setFile(null);
       setPreview(null);
     }
+  };
 
-    setUploading(false);
+  /* ================= TELEGRAM ================= */
+  const connectTelegram = async () => {
+    setTgLoading(true);
+
+    try {
+      const res = await fetch(`${API}/profile/telegram/link`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (data?.link) window.open(data.link, "_blank");
+    } finally {
+      setTimeout(() => setTgLoading(false), 800);
+    }
+  };
+
+  /* ================= PROMO ================= */
+  const applyPromo = async () => {
+    const res = await fetch(`${API}/promo/redeem`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ code: promo }),
+    });
+
+    const data = await res.json();
+
+    if (data?.success) {
+      setPromo("");
+
+      const updated = await fetch(`${API}/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const u = await updated.json();
+
+      setUser(u);
+      setDiscount(u?.active_promo?.rules?.discount ?? 0);
+
+      setPromoNotice(`🎉 Promo activated! -${u?.active_promo?.rules?.discount || 0}%`);
+      setTimeout(() => setPromoNotice(null), 3000);
+    } else {
+      alert(data?.error || "Invalid promo");
+    }
   };
 
   if (!user) {
@@ -357,47 +410,47 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
 
-        {/* ================= PROFILE CARD ================= */}
+        {/* ================= PROMO NOTIFY ================= */}
+        {promoNotice && (
+          <div className="bg-green-500/20 border border-green-500 text-green-300 px-4 py-3 rounded-xl font-bold">
+            {promoNotice}
+          </div>
+        )}
+
+        {/* ================= HEADER ================= */}
         <div className="bg-white/5 border border-white/10 p-6 rounded-3xl flex items-center gap-6">
 
-          {/* AVATAR CLICKABLE */}
+          {/* AVATAR CLICK */}
           <div
             onClick={openFile}
             className="w-24 h-24 rounded-2xl overflow-hidden bg-yellow-400 cursor-pointer relative group"
           >
             {avatar ? (
-              <img
-                src={avatar}
-                className="w-full h-full object-cover"
-              />
+              <img src={avatar} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-black text-3xl font-bold">
                 {user.name?.[0]}
               </div>
             )}
 
-            {/* hover */}
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-xs">
               Change
             </div>
           </div>
 
-          {/* INFO */}
           <div>
             <h1 className="text-2xl font-black">{user.name}</h1>
             <p className="text-white/50">{user.email}</p>
 
-            {user.active_promo && (
-              <p className="text-green-400 font-bold mt-1">
-                🔥 -{user.active_promo.rules.discount}% discount
-              </p>
-            )}
+            <p className="text-yellow-400 font-bold mt-1">
+              {discount > 0 ? `🔥 -${discount}% discount` : "No discount"}
+            </p>
           </div>
         </div>
 
-        {/* ================= HIDDEN INPUT ================= */}
+        {/* ================= HIDDEN FILE INPUT ================= */}
         <input
           ref={fileRef}
           type="file"
@@ -409,7 +462,7 @@ export default function ProfilePage() {
         {/* ================= PREVIEW ================= */}
         {preview && (
           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-            <p className="mb-2 text-sm text-white/60">Preview:</p>
+            <p className="text-sm text-white/60 mb-2">Preview</p>
 
             <img
               src={preview}
@@ -418,13 +471,33 @@ export default function ProfilePage() {
 
             <button
               onClick={uploadAvatar}
-              disabled={uploading}
               className="mt-3 bg-green-500 text-black px-4 py-2 rounded-xl font-bold"
             >
-              {uploading ? "Uploading..." : "Save Avatar"}
+              Save Avatar
             </button>
           </div>
         )}
+
+        {/* ================= PROMO ================= */}
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+          <h2 className="font-bold mb-3">Promo Code</h2>
+
+          <div className="flex gap-2">
+            <input
+              value={promo}
+              onChange={(e) => setPromo(e.target.value)}
+              className="flex-1 p-2 bg-black/40 border border-white/10 rounded-xl"
+              placeholder="Enter promo"
+            />
+
+            <button
+              onClick={applyPromo}
+              className="bg-yellow-400 text-black px-4 rounded-xl font-bold"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
 
       </div>
     </div>
