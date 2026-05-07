@@ -272,7 +272,7 @@ export default function ProfilePage() {
   const [preview, setPreview] = useState<string | null>(null);
 
   const [promo, setPromo] = useState("");
-  // const [tgLoading, setTgLoading] = useState(false);
+
 
   const [discount, setDiscount] = useState(0);
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
@@ -384,7 +384,9 @@ export default function ProfilePage() {
         : `${API}${user.avatar}`
       : null);
 
-  const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
+  const refLink = user?.ref_code
+    ? `${window.location.origin}/auth?ref=${user.ref_code}`
+    : `${window.location.origin}/auth`;
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
