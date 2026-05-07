@@ -272,7 +272,7 @@ export default function ProfilePage() {
   const [preview, setPreview] = useState<string | null>(null);
 
   const [promo, setPromo] = useState("");
-  const [tgLoading, setTgLoading] = useState(false);
+  // const [tgLoading, setTgLoading] = useState(false);
 
   const [discount, setDiscount] = useState(0);
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
