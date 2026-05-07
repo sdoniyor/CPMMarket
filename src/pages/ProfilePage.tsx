@@ -241,6 +241,7 @@
 
 
 
+
 import { useEffect, useState } from "react";
 
 const API = "https://cpmmarker.onrender.com";
@@ -274,13 +275,11 @@ export default function ProfilePage() {
   const [tgLoading, setTgLoading] = useState(false);
 
   const [discount, setDiscount] = useState(0);
-
-  // 🔥 NEW: notification state
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
 
   const token = localStorage.getItem("token");
 
-  /* ================= LOAD USER ================= */
+  /* ================= LOAD ================= */
   const loadUser = async () => {
     try {
       const res = await fetch(`${API}/profile/me`, {
@@ -297,7 +296,7 @@ export default function ProfilePage() {
       setUser(data);
       setDiscount(data?.active_promo?.rules?.discount ?? 0);
     } catch (e) {
-      console.log("PROFILE ERROR:", e);
+      console.log(e);
       window.location.href = "/auth";
     }
   };
@@ -315,7 +314,9 @@ export default function ProfilePage() {
 
     const res = await fetch(`${API}/profile/upload-avatar`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: form,
     });
 
@@ -325,26 +326,8 @@ export default function ProfilePage() {
       setUser(data.user);
       setFile(null);
       setPreview(null);
-    }
-  };
-
-  /* ================= TELEGRAM ================= */
-  const connectTelegram = async () => {
-    setTgLoading(true);
-
-    try {
-      const res = await fetch(`${API}/profile/telegram/link`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-
-      if (data?.link) {
-        window.open(data.link, "_blank");
-      }
-    } finally {
-      setTimeout(() => setTgLoading(false), 800);
+    } else {
+      alert(data?.error || "Upload error");
     }
   };
 
@@ -375,9 +358,8 @@ export default function ProfilePage() {
       setUser(u);
       setDiscount(u?.active_promo?.rules?.discount ?? 0);
 
-      // 🔥 SUCCESS NOTIFICATION
       setPromoNotice(
-        `🎉 Promo activated! -${u?.active_promo?.rules?.discount || 0}% discount`
+        `🎉 Promo activated! -${u?.active_promo?.rules?.discount || 0}%`
       );
 
       setTimeout(() => setPromoNotice(null), 3000);
@@ -389,7 +371,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        Loading profile...
+        Loading...
       </div>
     );
   }
@@ -408,17 +390,17 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#0a0b0d] text-white p-6">
       <div className="max-w-4xl mx-auto space-y-6">
 
-        {/* ================= NOTIFICATION ================= */}
+        {/* NOTIFICATION */}
         {promoNotice && (
           <div className="bg-green-500/20 border border-green-500 text-green-300 px-4 py-3 rounded-xl font-bold">
             {promoNotice}
           </div>
         )}
 
-        {/* ================= HEADER ================= */}
+        {/* HEADER */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
 
-          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-yellow-400 text-black flex items-center justify-center font-black text-3xl">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-yellow-400 flex items-center justify-center font-black text-3xl">
             {avatarUrl ? (
               <img src={avatarUrl} className="w-full h-full object-cover" />
             ) : (
@@ -429,15 +411,13 @@ export default function ProfilePage() {
           <div>
             <h1 className="text-3xl font-black">{user.name}</h1>
             <p className="text-white/40">{user.email}</p>
-
-            {/* 🔥 DISCOUNT UI */}
-            <p className="text-yellow-400 text-lg font-bold mt-1">
-              {discount > 0 ? `🔥 Discount: -${discount}%` : "No active discount"}
+            <p className="text-yellow-400 font-bold">
+              Discount: {discount}%
             </p>
           </div>
         </div>
 
-        {/* ================= REF ================= */}
+        {/* REF */}
         <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
           <h2 className="font-bold mb-3">Referral Link</h2>
 
@@ -455,32 +435,9 @@ export default function ProfilePage() {
               Copy
             </button>
           </div>
-
-          <p className="text-white/40 text-sm mt-2">
-            Referrals: {user.ref_count || 0}
-          </p>
         </div>
 
-        {/* ================= TELEGRAM ================= */}
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-          <h2 className="font-bold mb-3">Telegram</h2>
-
-          {user.telegram_id ? (
-            <p className="text-green-400">
-              Connected: @{user.telegram_username}
-            </p>
-          ) : (
-            <button
-              onClick={connectTelegram}
-              disabled={tgLoading}
-              className="bg-blue-500 px-4 py-2 rounded-xl font-bold"
-            >
-              {tgLoading ? "Connecting..." : "Connect Telegram"}
-            </button>
-          )}
-        </div>
-
-        {/* ================= PROMO ================= */}
+        {/* PROMO */}
         <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
           <h2 className="font-bold mb-3">Promo Code</h2>
 
@@ -488,7 +445,6 @@ export default function ProfilePage() {
             <input
               value={promo}
               onChange={(e) => setPromo(e.target.value)}
-              placeholder="Enter promo"
               className="flex-1 p-2 bg-black/40 border border-white/10 rounded-xl"
             />
 
@@ -499,6 +455,43 @@ export default function ProfilePage() {
               Apply
             </button>
           </div>
+        </div>
+
+        {/* ================= AVATAR UPLOAD (НОВЫЙ БЛОК) ================= */}
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+          <h2 className="font-bold mb-3">Upload Avatar</h2>
+
+          {/* FILE INPUT */}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+
+              setFile(f);
+
+              const reader = new FileReader();
+              reader.onload = () => setPreview(reader.result as string);
+              reader.readAsDataURL(f);
+            }}
+          />
+
+          {/* PREVIEW */}
+          {preview && (
+            <img
+              src={preview}
+              className="w-24 h-24 mt-3 rounded-xl object-cover"
+            />
+          )}
+
+          {/* SAVE BUTTON */}
+          <button
+            onClick={uploadAvatar}
+            className="mt-3 bg-green-500 px-6 py-2 rounded-xl font-bold"
+          >
+            Save Avatar
+          </button>
         </div>
 
       </div>
