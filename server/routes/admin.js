@@ -7,23 +7,29 @@ const router = express.Router();
 
 /* ================= USERS ================= */
 router.get("/users", auth, admin, async (req, res) => {
-  const result = await q(`
-    SELECT id, name, email, avatar, telegram_id, telegram_username,
-           ref_code, ref_count, role, created_at
-    FROM users
-    ORDER BY id DESC
-  `);
+  try {
+    const result = await q(`
+      SELECT 
+        id, name, email, avatar,
+        telegram_id, telegram_username,
+        ref_code, ref_count, role, created_at
+      FROM users
+      ORDER BY id DESC
+    `);
 
-  res.json(result.rows);
+    res.json(result.rows);
+  } catch (e) {
+    console.log("USERS ERROR:", e);
+    res.status(500).json({ error: "server error" });
+  }
 });
 
-/* ================= GET CARS ================= */
+/* ================= CARS ================= */
 router.get("/cars", auth, admin, async (req, res) => {
   const result = await q(`SELECT * FROM cars ORDER BY id DESC`);
   res.json(result.rows);
 });
 
-/* ================= CREATE CAR ================= */
 router.post("/cars", auth, admin, async (req, res) => {
   try {
     const {
@@ -54,7 +60,6 @@ router.post("/cars", auth, admin, async (req, res) => {
   }
 });
 
-/* ================= UPDATE CAR ================= */
 router.put("/cars/:id", auth, admin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -94,7 +99,6 @@ router.put("/cars/:id", auth, admin, async (req, res) => {
   }
 });
 
-/* ================= DELETE CAR ================= */
 router.delete("/cars/:id", auth, admin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -112,6 +116,57 @@ router.delete("/cars/:id", auth, admin, async (req, res) => {
 router.get("/promos", auth, admin, async (req, res) => {
   const result = await q(`SELECT * FROM promo_codes ORDER BY id DESC`);
   res.json(result.rows);
+});
+
+router.post("/promos", auth, admin, async (req, res) => {
+  try {
+    const { code, discount, rules } = req.body;
+
+    const result = await q(
+      `INSERT INTO promo_codes (code, discount, rules)
+       VALUES ($1,$2,$3)
+       RETURNING *`,
+      [code, discount, rules]
+    );
+
+    res.json(result.rows[0]);
+  } catch (e) {
+    console.log("PROMO CREATE ERROR:", e);
+    res.status(500).json({ error: "create failed" });
+  }
+});
+
+router.put("/promos/:id", auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { code, discount, rules } = req.body;
+
+    const result = await q(
+      `UPDATE promo_codes
+       SET code=$1, discount=$2, rules=$3
+       WHERE id=$4
+       RETURNING *`,
+      [code, discount, rules, id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (e) {
+    console.log("PROMO UPDATE ERROR:", e);
+    res.status(500).json({ error: "update failed" });
+  }
+});
+
+router.delete("/promos/:id", auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await q(`DELETE FROM promo_codes WHERE id=$1`, [id]);
+
+    res.json({ success: true });
+  } catch (e) {
+    console.log("PROMO DELETE ERROR:", e);
+    res.status(500).json({ error: "delete failed" });
+  }
 });
 
 module.exports = router;
