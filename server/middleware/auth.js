@@ -56,12 +56,8 @@ module.exports = async function (req, res, next) {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return res.status(401).json({ error: "No token" });
-    }
-
-    if (!authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Wrong token format" });
     }
 
     const token = authHeader.slice(7).trim();
@@ -69,12 +65,12 @@ module.exports = async function (req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!decoded.id) {
-      return res.status(401).json({ error: "Invalid payload" });
+      return res.status(401).json({ error: "Invalid token" });
     }
 
-    // 🔥 ВАЖНО: ДОСТАЁМ ПОЛЬЗОВАТЕЛЯ ИЗ БД
+    // 🔥 берем юзера из базы
     const result = await q(
-      "SELECT id, name, email, role FROM users WHERE id=$1",
+      "SELECT id, role FROM users WHERE id=$1",
       [decoded.id]
     );
 
@@ -84,17 +80,12 @@ module.exports = async function (req, res, next) {
       return res.status(401).json({ error: "User not found" });
     }
 
-    // 🔥 ВАЖНО: кладём full user
-    req.user = user;
     req.userId = user.id;
+    req.userRole = (user.role || "").trim(); // 🔥 FIX \n проблема
 
     next();
-
   } catch (e) {
     console.log("AUTH ERROR:", e.message);
-
-    return res.status(401).json({
-      error: "Invalid token",
-    });
+    return res.status(401).json({ error: "Invalid token" });
   }
 };
