@@ -5,7 +5,7 @@ const admin = require("../middleware/admin");
 
 const router = express.Router();
 
-/* ================= MIDDLEWARE DEBUG ================= */
+/* ================= LOG ================= */
 router.use((req, res, next) => {
   console.log(`[ADMIN] ${req.method} ${req.url}`);
   next();
@@ -30,18 +30,10 @@ router.get("/users", auth, admin, async (req, res) => {
       ORDER BY id DESC
     `);
 
-    if (!result.rows) {
-      return res.json([]);
-    }
-
-    res.json(result.rows);
-
+    res.json(result.rows || []);
   } catch (e) {
     console.log("USERS ERROR:", e);
-    res.status(500).json({
-      error: "users failed",
-      details: e.message,
-    });
+    res.status(500).json({ error: "users failed" });
   }
 });
 
@@ -80,19 +72,16 @@ router.post("/cars", auth, admin, async (req, res) => {
     );
 
     res.json(result.rows[0]);
-
   } catch (e) {
     console.log("CREATE CAR ERROR:", e);
-    res.status(500).json({
-      error: "create car failed",
-      details: e.message,
-    });
+    res.status(500).json({ error: "create failed" });
   }
 });
 
 router.put("/cars/:id", auth, admin, async (req, res) => {
   try {
     const { id } = req.params;
+
     const {
       name,
       brand,
@@ -122,13 +111,9 @@ router.put("/cars/:id", auth, admin, async (req, res) => {
     );
 
     res.json(result.rows[0]);
-
   } catch (e) {
     console.log("UPDATE CAR ERROR:", e);
-    res.status(500).json({
-      error: "update car failed",
-      details: e.message,
-    });
+    res.status(500).json({ error: "update failed" });
   }
 });
 
@@ -139,13 +124,9 @@ router.delete("/cars/:id", auth, admin, async (req, res) => {
     await q("DELETE FROM cars WHERE id=$1", [id]);
 
     res.json({ success: true });
-
   } catch (e) {
     console.log("DELETE CAR ERROR:", e);
-    res.status(500).json({
-      error: "delete car failed",
-      details: e.message,
-    });
+    res.status(500).json({ error: "delete failed" });
   }
 });
 
@@ -174,13 +155,9 @@ router.post("/promos", auth, admin, async (req, res) => {
     );
 
     res.json(result.rows[0]);
-
   } catch (e) {
     console.log("PROMO CREATE ERROR:", e);
-    res.status(500).json({
-      error: "create promo failed",
-      details: e.message,
-    });
+    res.status(500).json({ error: "create failed" });
   }
 });
 
@@ -200,13 +177,9 @@ router.put("/promos/:id", auth, admin, async (req, res) => {
     );
 
     res.json(result.rows[0]);
-
   } catch (e) {
     console.log("PROMO UPDATE ERROR:", e);
-    res.status(500).json({
-      error: "update promo failed",
-      details: e.message,
-    });
+    res.status(500).json({ error: "update failed" });
   }
 });
 
@@ -214,20 +187,16 @@ router.delete("/promos/:id", auth, admin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    await q(`DELETE FROM promo_codes WHERE id=$1`, [id]);
+    await q("DELETE FROM promo_codes WHERE id=$1", [id]);
 
     res.json({ success: true });
-
   } catch (e) {
     console.log("PROMO DELETE ERROR:", e);
-    res.status(500).json({
-      error: "delete promo failed",
-      details: e.message,
-    });
+    res.status(500).json({ error: "delete failed" });
   }
 });
 
-/* ================= DEBUG ================= */
+/* ================= DEBUG: USERS COUNT ================= */
 router.get("/debug/users-count", auth, admin, async (req, res) => {
   try {
     const r = await q("SELECT COUNT(*) FROM users");
@@ -237,10 +206,11 @@ router.get("/debug/users-count", auth, admin, async (req, res) => {
   }
 });
 
-router.get("/debug/users-raw", auth, admin, async (req, res) => {
+/* ================= DEBUG: DB NAME ================= */
+router.get("/debug/db", async (req, res) => {
   try {
-    const r = await q("SELECT * FROM users ORDER BY id DESC LIMIT 20");
-    res.json(r.rows);
+    const r = await q("SELECT current_database()");
+    res.json(r.rows[0]);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
