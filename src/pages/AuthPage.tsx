@@ -98,47 +98,52 @@ export default function Auth() {
 
   /* ================= AUTH ================= */
   const handleAuth = async () => {
-    if (!email || !password) return alert("Fill all fields");
+  if (!email || !password) return alert("Fill all fields");
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const endpoint = isRegister ? "/auth/register" : "/auth/login";
+    const endpoint = isRegister ? "/auth/register" : "/auth/login";
 
-      const body = isRegister
-        ? {
-            name,
-            email,
-            password,
-            referredBy: ref || null,
-          }
-        : { email, password };
+    const body = isRegister
+      ? {
+          name,
+          email,
+          password,
+          referredBy: ref || null,
+        }
+      : { email, password };
 
-      const res = await fetch(`${API}${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+    const res = await fetch(`${API}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        alert(data?.error || "Auth error");
-        return;
-      }
-
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-
-        navigate("/market", { replace: true });
-      }
-    } catch (e) {
-      console.log(e);
-      alert("Server error");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      alert(data?.error || "Auth error");
+      return;
     }
-  };
+
+    if (data?.token) {
+      localStorage.setItem("token", data.token);
+
+      // 🔥 ВАЖНО ДОБАВИТЬ ЭТО:
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
+      navigate("/market", { replace: true });
+    }
+  } catch (e) {
+    console.log(e);
+    alert("Server error");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0b0d] text-white px-4">
