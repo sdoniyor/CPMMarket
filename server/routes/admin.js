@@ -24,8 +24,7 @@ router.get("/users", auth, admin, async (req, res) => {
         telegram_username,
         ref_code,
         ref_count,
-        role,
-        created_at
+        role
       FROM users
       ORDER BY id DESC
     `);
@@ -34,6 +33,71 @@ router.get("/users", auth, admin, async (req, res) => {
   } catch (e) {
     console.log("USERS ERROR:", e);
     res.status(500).json({ error: "users failed" });
+  }
+});
+
+/* ================= UPDATE USER ================= */
+router.put("/users/:id", auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      name,
+      email,
+      role,
+      telegram_username,
+      telegram_id,
+      ref_code,
+      ref_count,
+      avatar,
+    } = req.body;
+
+    const result = await q(
+      `
+      UPDATE users
+      SET 
+        name=$1,
+        email=$2,
+        role=$3,
+        telegram_username=$4,
+        telegram_id=$5,
+        ref_code=$6,
+        ref_count=$7,
+        avatar=$8
+      WHERE id=$9
+      RETURNING *
+      `,
+      [
+        name,
+        email,
+        role,
+        telegram_username,
+        telegram_id,
+        ref_code,
+        ref_count,
+        avatar,
+        id,
+      ]
+    );
+
+    res.json(result.rows[0]);
+  } catch (e) {
+    console.log("USER UPDATE ERROR:", e);
+    res.status(500).json({ error: "update failed" });
+  }
+});
+
+/* ================= DELETE USER ================= */
+router.delete("/users/:id", auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await q("DELETE FROM users WHERE id=$1", [id]);
+
+    res.json({ success: true });
+  } catch (e) {
+    console.log("USER DELETE ERROR:", e);
+    res.status(500).json({ error: "delete failed" });
   }
 });
 
@@ -58,7 +122,7 @@ router.post("/cars", auth, admin, async (req, res) => {
       speed,
       price,
       image_url,
-      type
+      type,
     } = req.body;
 
     const result = await q(
@@ -90,7 +154,7 @@ router.put("/cars/:id", auth, admin, async (req, res) => {
       speed,
       price,
       image_url,
-      type
+      type,
     } = req.body;
 
     const result = await q(
@@ -196,7 +260,7 @@ router.delete("/promos/:id", auth, admin, async (req, res) => {
   }
 });
 
-/* ================= DEBUG: USERS COUNT ================= */
+/* ================= DEBUG (SAFE) ================= */
 router.get("/debug/users-count", auth, admin, async (req, res) => {
   try {
     const r = await q("SELECT COUNT(*) FROM users");
@@ -206,21 +270,10 @@ router.get("/debug/users-count", auth, admin, async (req, res) => {
   }
 });
 
-/* ================= DEBUG: DB NAME ================= */
-router.get("/debug/db", async (req, res) => {
+router.get("/debug/db", auth, admin, async (req, res) => {
   try {
     const r = await q("SELECT current_database()");
     res.json(r.rows[0]);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-
-router.get("/debug/users-all", async (req, res) => {
-  try {
-    const r = await q("SELECT * FROM users LIMIT 50");
-    res.json(r.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
