@@ -262,19 +262,7 @@
 
 
 
-import { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  User as UserIcon, 
-  Mail, 
-  Copy, 
-  Zap, 
-  Camera, 
-  Check, 
-  Share2, 
-  LogOut 
-} from "lucide-react";
-import Navbar from "../components/Navbar";
+import { useEffect, useState } from "react";
 
 const API = "https://cpmmarker.onrender.com";
 
@@ -285,9 +273,14 @@ type User = {
   avatar?: string;
   ref_code?: string;
   ref_count?: number;
+  telegram_username?: string;
+  telegram_id?: string;
   active_promo?: {
     promo_code: string;
-    rules: { discount: number; };
+    rules: {
+      discount: number;
+      allowed_types?: string[];
+    };
   } | null;
 };
 
@@ -298,9 +291,7 @@ export default function ProfilePage() {
   const [promo, setPromo] = useState("");
   const [discount, setDiscount] = useState(0);
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const token = localStorage.getItem("token");
 
   const loadUser = async () => {
@@ -308,178 +299,219 @@ export default function ProfilePage() {
       const res = await fetch(`${API}/profile/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const data = await res.json();
-      if (!data?.id) return window.location.href = "/auth";
+
+      if (!data?.id) {
+        window.location.href = "/auth";
+        return;
+      }
+
       setUser(data);
       setDiscount(data?.active_promo?.rules?.discount ?? 0);
-    } catch (e) {
+    } catch {
       window.location.href = "/auth";
     }
   };
 
-  useEffect(() => { loadUser(); }, []);
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  useEffect(() => {
+    loadUser();
+  }, []);
 
   const uploadAvatar = async () => {
-    if (!file) return;
+    if (!file) return alert("Выбери фото");
+
     const form = new FormData();
     form.append("avatar", file);
 
     const res = await fetch(`${API}/profile/upload-avatar`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: form,
     });
 
     const data = await res.json();
+
     if (data?.success) {
       setUser(data.user);
       setFile(null);
       setPreview(null);
-      setPromoNotice("Avatar updated!");
-      setTimeout(() => setPromoNotice(null), 3000);
+    } else {
+      alert(data?.error || "Upload error");
     }
   };
 
   const applyPromo = async () => {
-    if (!promo.trim()) return;
+    if (!promo.trim()) return alert("Введите промокод");
+
     const res = await fetch(`${API}/promo/redeem`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ code: promo }),
     });
 
     const data = await res.json();
+
     if (data?.success) {
       setPromo("");
-      loadUser();
-      setPromoNotice(`🎉 Activated: -${data.discount || 0}%`);
+
+      const updated = await fetch(`${API}/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const u = await updated.json();
+
+      setUser(u);
+      setDiscount(u?.active_promo?.rules?.discount ?? 0);
+
+      setPromoNotice(
+        `🎉 Promo activated! -${u?.active_promo?.rules?.discount || 0}%`
+      );
+
       setTimeout(() => setPromoNotice(null), 3000);
+    } else {
+      alert(data?.error || "Invalid promo");
     }
   };
 
-  if (!user) return <div className="min-h-screen bg-[#08090a] flex items-center justify-center text-yellow-400 font-black italic">LOADING PROFILE...</div>;
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl font-bold animate-pulse">
+        Loading...
+      </div>
+    );
+  }
 
-  const avatarUrl = preview || (user.avatar ? (user.avatar.startsWith("http") ? user.avatar : `${API}${user.avatar}`) : null);
-  const refLink = `${window.location.origin}/auth?ref=${user.ref_code || ""}`;
+  const avatarUrl =
+    preview ||
+    (user.avatar
+      ? user.avatar.startsWith("http")
+        ? user.avatar
+        : `${API}${user.avatar}`
+      : null);
+
+  const refLink = user?.ref_code
+    ? `${window.location.origin}/auth?ref=${user.ref_code}`
+    : `${window.location.origin}/auth`;
 
   return (
-    <div className="min-h-screen bg-[#08090a] text-white pb-20">
-      <Navbar />
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-black text-white p-6">
+      <div className="max-w-4xl mx-auto space-y-6 animate-[fadeIn_.6s_ease]">
 
-      <div className="max-w-4xl mx-auto px-6 pt-28 space-y-8">
-        
-        {/* TOP NOTIFICATION */}
-        <AnimatePresence>
-          {promoNotice && (
-            <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="bg-yellow-400 text-black px-6 py-4 rounded-2xl font-[900] italic uppercase tracking-tighter shadow-lg shadow-yellow-400/20 flex justify-between">
-              {promoNotice} <Check size={20} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {promoNotice && (
+          <div className="rounded-2xl border border-green-400/30 bg-green-500/10 backdrop-blur-xl px-5 py-4 text-green-300 font-bold shadow-lg animate-bounce">
+            {promoNotice}
+          </div>
+        )}
 
-        {/* PROFILE HEADER */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative bg-[#111214] border border-white/5 rounded-[3rem] p-8 md:p-12 overflow-hidden">
-            {/* Background Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 blur-[100px] pointer-events-none" />
-            
-            <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-                {/* Avatar Section */}
-                <div className="relative group">
-                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] overflow-hidden bg-white/5 border-2 border-white/10 p-1 group-hover:border-yellow-400 transition-colors">
-                        {avatarUrl ? (
-                            <img src={avatarUrl} className="w-full h-full object-cover rounded-[2.2rem]" alt="Profile" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-4xl font-black text-white/20 bg-white/5">{user.name[0]}</div>
-                        )}
-                    </div>
-                    <button onClick={() => fileInputRef.current?.click()} className="absolute -bottom-2 -right-2 bg-yellow-400 text-black p-3 rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all">
-                        <Camera size={20} />
-                    </button>
-                    <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) {
-                            setFile(f);
-                            const r = new FileReader();
-                            r.onload = () => setPreview(r.result as string);
-                            r.readAsDataURL(f);
-                        }
-                    }} />
-                </div>
+        {/* HEADER */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-6 flex items-center gap-6 shadow-2xl hover:scale-[1.01] transition duration-300">
 
-                <div className="text-center md:text-left flex-1">
-                    <h1 className="text-4xl md:text-5xl font-[900] italic uppercase tracking-tighter mb-2">{user.name}</h1>
-                    <div className="flex flex-wrap justify-center md:justify-start gap-4 items-center">
-                        <div className="flex items-center gap-2 text-white/40 font-bold uppercase text-[10px] tracking-widest"><Mail size={12} /> {user.email}</div>
-                        <div className="bg-yellow-400/10 text-yellow-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-yellow-400/20 italic">
-                            Rank: Professional
-                        </div>
-                    </div>
-                </div>
+          <div className="w-28 h-28 rounded-3xl overflow-hidden bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center font-black text-4xl text-black shadow-xl hover:rotate-3 transition duration-300">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              user.name?.[0]
+            )}
+          </div>
 
-                {/* Stat Box */}
-                <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] text-center min-w-[140px]">
-                    <div className="text-yellow-400 text-3xl font-[900] italic leading-none">{discount}%</div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mt-2">Active Discount</div>
-                </div>
-            </div>
+          <div>
+            <h1 className="text-4xl font-black tracking-tight">
+              {user.name}
+            </h1>
 
-            {/* Upload Confirm Button */}
-            <AnimatePresence>
-                {preview && (
-                    <motion.button initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} onClick={uploadAvatar} className="mt-8 w-full bg-green-500 text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs">
-                        Confirm New Avatar
-                    </motion.button>
-                )}
-            </AnimatePresence>
-        </motion.div>
+            <p className="text-white/40 mt-1 text-lg">
+              {user.email}
+            </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* REFERRAL SYSTEM */}
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="bg-[#111214] border border-white/5 p-8 rounded-[2.5rem]">
-                <div className="flex items-center gap-3 mb-6">
-                    <Share2 size={20} className="text-yellow-400" />
-                    <h2 className="text-xl font-black italic uppercase tracking-tighter">Referral Link</h2>
-                </div>
-                <div className="relative group">
-                    <input value={refLink} readOnly className="w-full bg-black border border-white/10 rounded-2xl p-4 pr-14 text-sm font-medium text-white/60 focus:outline-none focus:border-yellow-400/50 transition-colors" />
-                    <button onClick={() => handleCopy(refLink)} className="absolute right-2 top-2 p-3 bg-white/5 hover:bg-yellow-400 hover:text-black rounded-xl transition-all">
-                        {copied ? <Check size={18} /> : <Copy size={18} />}
-                    </button>
-                </div>
-                <p className="mt-4 text-[10px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
-                    Invite friends and get <span className="text-yellow-400">extra bonuses</span> for every registration using your link.
-                </p>
-            </motion.div>
-
-            {/* PROMO SYSTEM */}
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="bg-[#111214] border border-white/5 p-8 rounded-[2.5rem]">
-                <div className="flex items-center gap-3 mb-6">
-                    <Zap size={20} className="text-yellow-400" />
-                    <h2 className="text-xl font-black italic uppercase tracking-tighter">Redeem Promo</h2>
-                </div>
-                <div className="flex gap-2">
-                    <input placeholder="ENTER_CODE" value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())} className="flex-1 bg-black border border-white/10 rounded-2xl p-4 text-sm font-black tracking-widest placeholder:text-white/10 uppercase focus:border-yellow-400 transition-colors focus:outline-none" />
-                    <button onClick={applyPromo} className="bg-yellow-400 text-black px-6 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-yellow-300 transition-colors shadow-lg shadow-yellow-400/10">
-                        Apply
-                    </button>
-                </div>
-                <div className="mt-6 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Active promo:</span>
-                    <span className="text-xs font-black italic text-yellow-400">{user.active_promo?.promo_code || "NONE"}</span>
-                </div>
-            </motion.div>
+            <p className="mt-3 inline-flex bg-yellow-400/20 border border-yellow-400/30 px-4 py-2 rounded-full text-yellow-300 font-bold">
+              Discount: {discount}%
+            </p>
+          </div>
         </div>
 
-        {/* LOGOUT */}
-        <button onClick={() => { localStorage.removeItem("token"); window.location.href = "/auth"; }} className="w-full py-6 rounded-[2rem] border border-red-500/10 hover:bg-red-500/5 text-red-500 font-black italic uppercase tracking-widest transition-all flex items-center justify-center gap-3">
-            <LogOut size={20} /> Terminate Session
-        </button>
+        {/* REF */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-6 shadow-xl hover:-translate-y-1 transition duration-300">
+          <h2 className="font-bold text-xl mb-4">Referral Link</h2>
+
+          <div className="flex gap-3">
+            <input
+              value={refLink}
+              readOnly
+              className="flex-1 p-4 rounded-2xl bg-black/30 border border-white/10 outline-none focus:border-yellow-400 transition"
+            />
+
+            <button
+              onClick={() => navigator.clipboard.writeText(refLink)}
+              className="px-6 rounded-2xl bg-yellow-400 text-black font-black hover:scale-105 active:scale-95 transition"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+
+        {/* PROMO */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-6 shadow-xl hover:-translate-y-1 transition duration-300">
+          <h2 className="font-bold text-xl mb-4">Promo Code</h2>
+
+          <div className="flex gap-3">
+            <input
+              value={promo}
+              onChange={(e) => setPromo(e.target.value)}
+              className="flex-1 p-4 rounded-2xl bg-black/30 border border-white/10 outline-none focus:border-yellow-400 transition"
+            />
+
+            <button
+              onClick={applyPromo}
+              className="px-6 rounded-2xl bg-yellow-400 text-black font-black hover:scale-105 active:scale-95 transition"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+
+        {/* AVATAR */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-6 shadow-xl hover:-translate-y-1 transition duration-300">
+          <h2 className="font-bold text-xl mb-4">Upload Avatar</h2>
+
+          <input
+            type="file"
+            accept="image/*"
+            className="block w-full text-sm file:mr-4 file:px-5 file:py-3 file:rounded-2xl file:border-0 file:bg-yellow-400 file:text-black file:font-bold hover:file:scale-105 file:transition"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+
+              setFile(f);
+
+              const reader = new FileReader();
+              reader.onload = () => setPreview(reader.result as string);
+              reader.readAsDataURL(f);
+            }}
+          />
+
+          {preview && (
+            <img
+              src={preview}
+              className="w-28 h-28 mt-5 rounded-3xl object-cover border border-white/10 shadow-xl animate-[fadeIn_.4s_ease]"
+            />
+          )}
+
+          <button
+            onClick={uploadAvatar}
+            className="mt-5 bg-green-500 hover:bg-green-400 px-6 py-3 rounded-2xl font-black hover:scale-105 active:scale-95 transition"
+          >
+            Save Avatar
+          </button>
+        </div>
 
       </div>
     </div>
