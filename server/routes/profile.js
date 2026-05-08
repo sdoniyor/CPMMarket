@@ -164,11 +164,18 @@ const { q } = require("../db");
 
 const router = express.Router();
 
-/* ================= GET PROFILE ================= */
 router.get("/me", auth, async (req, res) => {
   try {
     const userRes = await q(
-      `SELECT id, name, email, avatar, ref_code, telegram_username, telegram_id
+      `SELECT 
+        id, 
+        name, 
+        email, 
+        avatar, 
+        ref_code, 
+        telegram_username, 
+        telegram_id,
+        role
        FROM users
        WHERE id=$1`,
       [req.userId]
@@ -200,7 +207,6 @@ router.get("/me", auth, async (req, res) => {
 
     const promo = promoRes.rows[0] || null;
 
-    // ================= SAFE PARSE =================
     let rules = promo?.rules;
 
     if (typeof rules !== "string") {
@@ -217,15 +223,21 @@ router.get("/me", auth, async (req, res) => {
       promo.discount !== undefined &&
       validTypes.includes(rules);
 
-    res.json({
+    return res.json({
+      /* ================= USER ================= */
       id: user.id,
       name: user.name,
       email: user.email,
       avatar: user.avatar || null,
 
+      /* ================= ADMIN ROLE (🔥 FIX) ================= */
+      role: user.role || "user",
+
+      /* ================= REF ================= */
       ref_code: user.ref_code,
       ref_count: Number(refs.rows?.[0]?.count || 0),
 
+      /* ================= TG ================= */
       telegram_username: user.telegram_username,
       telegram_id: user.telegram_id,
 
@@ -234,76 +246,15 @@ router.get("/me", auth, async (req, res) => {
         ? {
             promo_code: promo.promo_code,
             discount: Number(promo.discount),
-            rules: rules
+            rules: rules,
           }
-        : null
+        : null,
     });
 
   } catch (e) {
     console.log("PROFILE ERROR:", e);
-    res.status(500).json({ error: "server error" });
+    return res.status(500).json({ error: "server error" });
   }
 });
-
-/* ================= TELEGRAM LINK ================= */
-router.post("/telegram/link", auth, async (req, res) => {
-  try {
-    const code = Math.random().toString(36).substring(2, 10);
-
-    await q(
-      `INSERT INTO telegram_links (user_id, code, used)
-       VALUES ($1,$2,false)`,
-      [req.userId, code]
-    );
-
-    const bot = process.env.BOT_USERNAME || "CPMMarket_bot";
-
-    res.json({
-      link: `https://t.me/${bot}?start=${code}`,
-      code,
-    });
-
-  } catch (e) {
-    console.log("TG LINK ERROR:", e);
-    res.status(500).json({ error: "Failed to create link" });
-  }
-});
-
-/* ================= UPLOAD AVATAR ================= */
-router.post(
-  "/upload-avatar",
-  auth,
-  require("../middleware/upload").single("avatar"),
-  async (req, res) => {
-    try {
-      const imageUrl = req.file?.path;
-
-      if (!imageUrl) {
-        return res.status(400).json({ error: "No file" });
-      }
-
-      await q(
-        `UPDATE users SET avatar=$1 WHERE id=$2`,
-        [imageUrl, req.userId]
-      );
-
-      const user = await q(
-        `SELECT id, name, email, avatar
-         FROM users
-         WHERE id=$1`,
-        [req.userId]
-      );
-
-      res.json({
-        success: true,
-        user: user.rows[0],
-      });
-
-    } catch (e) {
-      console.log("UPLOAD ERROR:", e);
-      res.status(500).json({ error: "upload failed" });
-    }
-  }
-);
 
 module.exports = router;
