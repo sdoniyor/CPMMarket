@@ -178,7 +178,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, User, Mail, Lock, Car } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, Car, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Mode = "login" | "register";
@@ -207,8 +207,7 @@ export default function Auth() {
   }, []);
 
   const handleAuth = async () => {
-    if (!email || !password || (isRegister && !name)) return alert("Fill all fields");
-
+    if (!email || !password) return alert("Fill all fields");
     try {
       setLoading(true);
       const endpoint = isRegister ? "/auth/register" : "/auth/login";
@@ -223,12 +222,10 @@ export default function Auth() {
       });
 
       const data = await res.json();
-
       if (!res.ok) {
         alert(data?.error || "Auth error");
         return;
       }
-
       if (data?.token) {
         localStorage.setItem("token", data.token);
         if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
@@ -242,154 +239,145 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050505] overflow-hidden relative font-sans">
-      {/* Декоративные элементы фона (эффект фар/неона) */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-yellow-400/10 blur-[120px] rounded-full" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-yellow-400/5 blur-[120px] rounded-full" />
+    <div className="min-h-screen flex items-center justify-center bg-[#08090a] text-white px-4 relative overflow-hidden font-sans">
+      
+      {/* ДИНАМИЧНЫЙ ФОН: Глоу-эффекты как от фар */}
+      <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-yellow-400/5 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-yellow-500/5 blur-[100px] rounded-full" />
 
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[440px] z-10 px-4"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-[420px] z-10"
       >
-        <div className="bg-[#111214] border border-white/5 shadow-2xl rounded-[2rem] overflow-hidden relative">
+        {/* КАРТОЧКА: Эффект карбона и стекла */}
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400/20 to-transparent rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
           
-          {/* Верхняя часть с логотипом */}
-          <div className="p-8 pb-4 text-center">
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-yellow-400 rounded-2xl mb-4 rotate-3 shadow-[0_0_20px_rgba(250,204,21,0.3)]"
-            >
-              <Car size={32} className="text-black -rotate-3" />
-            </motion.div>
+          <div className="relative bg-[#111214] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl backdrop-blur-xl">
             
-            <h1 className="text-4xl font-[900] tracking-tighter italic">
-              CPM <span className="text-yellow-400 text-stroke-sm">MARKET</span>
-            </h1>
-            <p className="text-white/40 text-xs uppercase tracking-[0.2em] mt-2 font-bold">
-              The Ultimate Car Exchange
-            </p>
-          </div>
-
-          {/* Переключатель */}
-          <div className="px-8 mb-6">
-            <div className="flex bg-black/50 p-1 rounded-2xl border border-white/5 relative">
+            {/* LOGO SECTION */}
+            <div className="text-center mb-8">
               <motion.div 
-                layoutId="activeTab"
-                className="absolute inset-1 bg-yellow-400 rounded-xl"
-                initial={false}
-                animate={{ x: mode === "login" ? "0%" : "100%" }}
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                style={{ width: "calc(50% - 4px)" }}
-              />
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+                className="inline-block p-3 bg-yellow-400 rounded-2xl mb-4 shadow-[0_0_25px_rgba(250,204,21,0.4)]"
+              >
+                <Car size={32} className="text-black" />
+              </motion.div>
+              <h1 className="text-4xl font-black italic tracking-tighter">
+                CPM <span className="text-yellow-400">MARKET</span>
+              </h1>
+              <p className="text-white/30 text-[10px] font-bold tracking-[0.3em] uppercase mt-2">
+                Premium Car Trading Platform
+              </p>
+            </div>
+
+            {/* TOGGLE SWITCH: Спортивный стиль */}
+            <div className="flex bg-black/60 rounded-2xl p-1.5 mb-8 border border-white/5">
               <button
                 onClick={() => setMode("login")}
-                className={`relative z-10 flex-1 py-3 text-xs font-black uppercase tracking-wider transition-colors ${
-                  mode === "login" ? "text-black" : "text-white/50 hover:text-white"
+                className={`flex-1 py-3 rounded-xl text-xs font-black transition-all duration-300 ${
+                  mode === "login" ? "bg-yellow-400 text-black shadow-lg" : "text-white/40 hover:text-white"
                 }`}
               >
-                Login
+                LOGIN
               </button>
               <button
                 onClick={() => setMode("register")}
-                className={`relative z-10 flex-1 py-3 text-xs font-black uppercase tracking-wider transition-colors ${
-                  mode === "register" ? "text-black" : "text-white/50 hover:text-white"
+                className={`flex-1 py-3 rounded-xl text-xs font-black transition-all duration-300 ${
+                  mode === "register" ? "bg-yellow-400 text-black shadow-lg" : "text-white/40 hover:text-white"
                 }`}
               >
-                Join Race
+                SIGN UP
               </button>
             </div>
-          </div>
 
-          {/* Форма */}
-          <div className="px-8 pb-10 space-y-4">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={mode}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                className="space-y-4"
-              >
-                {isRegister && (
-                  <div className="group">
-                    <div className="relative flex items-center">
-                      <User size={18} className="absolute left-4 text-white/20 group-focus-within:text-yellow-400 transition-colors" />
+            {/* INPUTS AREA */}
+            <div className="space-y-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={mode}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  {isRegister && (
+                    <div className="relative group">
+                      <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-yellow-400 transition-colors" />
                       <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Driver Nickname"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-black/40 border border-white/5 focus:border-yellow-400/50 focus:ring-4 focus:ring-yellow-400/5 transition-all outline-none text-sm font-medium"
+                        placeholder="Driver Name"
+                        className="w-full bg-black/40 border border-white/10 p-4 pl-12 rounded-2xl focus:border-yellow-400/50 outline-none transition-all placeholder:text-white/20 text-sm font-medium"
                       />
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <div className="group">
-                  <div className="relative flex items-center">
-                    <Mail size={18} className="absolute left-4 text-white/20 group-focus-within:text-yellow-400 transition-colors" />
+                  <div className="relative group">
+                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-yellow-400 transition-colors" />
                     <input
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      type="email"
                       placeholder="Email Address"
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl bg-black/40 border border-white/5 focus:border-yellow-400/50 focus:ring-4 focus:ring-yellow-400/5 transition-all outline-none text-sm font-medium"
+                      className="w-full bg-black/40 border border-white/10 p-4 pl-12 rounded-2xl focus:border-yellow-400/50 outline-none transition-all placeholder:text-white/20 text-sm font-medium"
                     />
                   </div>
-                </div>
 
-                <div className="group relative">
-                  <div className="relative flex items-center">
-                    <Lock size={18} className="absolute left-4 text-white/20 group-focus-within:text-yellow-400 transition-colors" />
+                  <div className="relative group">
+                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-yellow-400 transition-colors" />
                     <input
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       type={showPassword ? "text" : "password"}
-                      placeholder="Security Key"
-                      className="w-full pl-12 pr-12 py-4 rounded-2xl bg-black/40 border border-white/5 focus:border-yellow-400/50 focus:ring-4 focus:ring-yellow-400/5 transition-all outline-none text-sm font-medium"
+                      placeholder="Password"
+                      className="w-full bg-black/40 border border-white/10 p-4 pl-12 pr-12 rounded-2xl focus:border-yellow-400/50 outline-none transition-all placeholder:text-white/20 text-sm font-medium"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 text-white/20 hover:text-white transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-            {ref && isRegister && (
+            {/* REFERRAL BADGE */}
+            {ref && (
               <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="py-2 px-4 bg-yellow-400/10 border border-yellow-400/20 rounded-xl text-center"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="mt-4 p-3 bg-yellow-400/5 border border-yellow-400/20 rounded-xl flex items-center justify-center gap-2"
               >
-                <span className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest">
-                  🏁 Referral Bonus Active: {ref}
-                </span>
+                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping" />
+                <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest">Referral: {ref}</span>
               </motion.div>
             )}
 
+            {/* SUBMIT BUTTON: С пульсацией */}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleAuth}
               disabled={loading}
-              className="w-full py-4 rounded-2xl bg-yellow-400 text-black font-[900] uppercase tracking-tighter text-lg shadow-[0_10px_20px_rgba(250,204,21,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full mt-8 bg-yellow-400 hover:bg-yellow-300 text-black py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_10px_30px_rgba(250,204,21,0.2)] flex items-center justify-center gap-3 group transition-all"
             >
               {loading ? (
-                <div className="w-6 h-6 border-4 border-black/20 border-t-black rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
               ) : (
-                <>{isRegister ? "Start Your Engine" : "Ignition"}</>
+                <>
+                  {isRegister ? "Create Account" : "Sign In"}
+                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </>
               )}
             </motion.button>
 
-            <p className="text-center text-white/20 text-[10px] font-bold uppercase tracking-[0.1em]">
-              Authorized Access Only • Server: Render-OS v2.4
+            {/* FOOTER INFO */}
+            <p className="text-center text-white/10 text-[9px] font-bold uppercase tracking-[0.2em] mt-8">
+              CPM Marker Security System v2.0
             </p>
           </div>
         </div>
