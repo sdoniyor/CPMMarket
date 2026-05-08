@@ -207,6 +207,7 @@ export default function Market() {
   const nav = useNavigate();
 
   useEffect(() => {
+    
     const loadCars = async () => {
       try {
         setLoading(true);

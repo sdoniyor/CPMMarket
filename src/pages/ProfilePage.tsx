@@ -302,6 +302,7 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
+    console.log("USER:", user);
     loadUser();
   }, []);
 
