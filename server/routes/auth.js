@@ -1,3 +1,5 @@
+
+
 // const express = require("express");
 // const bcrypt = require("bcrypt");
 // const jwt = require("jsonwebtoken");
@@ -5,9 +7,9 @@
 
 // const router = express.Router();
 
-// /* ================= GENERATE REF CODE ================= */
+// /* ================= REF CODE ================= */
 // const generateRef = () =>
-//   Math.random().toString(36).substring(2, 8);
+//   Math.random().toString(36).substring(2, 8).toUpperCase();
 
 // /* ================= REGISTER ================= */
 // router.post("/register", async (req, res) => {
@@ -18,7 +20,7 @@
 //       return res.status(400).json({ error: "Missing fields" });
 //     }
 
-//     /* ===== CHECK EMAIL ===== */
+//     /* ================= CHECK EMAIL ================= */
 //     const exist = await q(
 //       "SELECT id FROM users WHERE email=$1",
 //       [email]
@@ -30,13 +32,13 @@
 
 //     const hash = await bcrypt.hash(password, 10);
 
-//     /* ===== FIND REFERRER ===== */
+//     /* ================= FIND REFERRER ================= */
 //     let referredUserId = null;
 
-//     if (referredBy) {
+//     if (referredBy && typeof referredBy === "string") {
 //       const refUser = await q(
 //         "SELECT id FROM users WHERE ref_code=$1",
-//         [referredBy]
+//         [referredBy.trim()]
 //       );
 
 //       if (refUser.rows.length > 0) {
@@ -44,8 +46,9 @@
 //       }
 //     }
 
-//     /* ===== GENERATE UNIQUE REF CODE ===== */
+//     /* ================= UNIQUE REF CODE ================= */
 //     let refCode;
+
 //     while (true) {
 //       refCode = generateRef();
 
@@ -57,22 +60,40 @@
 //       if (check.rows.length === 0) break;
 //     }
 
-//     /* ===== INSERT USER ===== */
+//     /* ================= CREATE USER ================= */
 //     const r = await q(
 //       `INSERT INTO users (name, email, password, ref_code, referred_by)
 //        VALUES ($1,$2,$3,$4,$5)
-//        RETURNING id`,
+//        RETURNING id, name, email, ref_code`,
 //       [name, email, hash, refCode, referredUserId]
 //     );
 
-//     /* ===== TOKEN ===== */
+//     const newUser = r.rows[0];
+
+//     /* ================= SAVE REF EVENT ================= */
+// if (referredUserId) {
+//   await q(
+//     "INSERT INTO referrals (referrer_id, user_id) VALUES ($1,$2)",
+//     [referredUserId, newUser.id]
+//   );
+
+//   await q(
+//     "UPDATE users SET ref_count = COALESCE(ref_count,0) + 1 WHERE id=$1",
+//     [referredUserId]
+//   );
+// }
+
+//     /* ================= TOKEN ================= */
 //     const token = jwt.sign(
-//       { id: r.rows[0].id },
+//       { id: newUser.id },
 //       process.env.JWT_SECRET,
 //       { expiresIn: "7d" }
 //     );
 
-//     res.json({ token });
+//     res.json({
+//       token,
+//       user: newUser,
+//     });
 
 //   } catch (e) {
 //     console.log("REGISTER ERROR:", e);
@@ -112,7 +133,15 @@
 //       { expiresIn: "7d" }
 //     );
 
-//     res.json({ token });
+//     res.json({
+//       token,
+//       user: {
+//         id: user.id,
+//         name: user.name,
+//         email: user.email,
+//         ref_code: user.ref_code,
+//       },
+//     });
 
 //   } catch (e) {
 //     console.log("LOGIN ERROR:", e);
@@ -121,6 +150,8 @@
 // });
 
 // module.exports = router;
+
+
 
 
 const express = require("express");
@@ -139,7 +170,7 @@ router.post("/register", async (req, res) => {
   try {
     const { name, email, password, referredBy } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !name) {
       return res.status(400).json({ error: "Missing fields" });
     }
 
@@ -155,10 +186,10 @@ router.post("/register", async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    /* ================= FIND REFERRER ================= */
+    /* ================= REFERRAL ================= */
     let referredUserId = null;
 
-    if (referredBy && typeof referredBy === "string") {
+    if (referredBy) {
       const refUser = await q(
         "SELECT id FROM users WHERE ref_code=$1",
         [referredBy.trim()]
@@ -185,26 +216,29 @@ router.post("/register", async (req, res) => {
 
     /* ================= CREATE USER ================= */
     const r = await q(
-      `INSERT INTO users (name, email, password, ref_code, referred_by)
-       VALUES ($1,$2,$3,$4,$5)
-       RETURNING id, name, email, ref_code`,
+      `
+      INSERT INTO users 
+      (name, email, password, ref_code, referred_by, role, ref_count)
+      VALUES ($1,$2,$3,$4,$5,'user',0)
+      RETURNING id, name, email, ref_code, role, ref_count
+      `,
       [name, email, hash, refCode, referredUserId]
     );
 
     const newUser = r.rows[0];
 
-    /* ================= SAVE REF EVENT ================= */
-if (referredUserId) {
-  await q(
-    "INSERT INTO referrals (referrer_id, user_id) VALUES ($1,$2)",
-    [referredUserId, newUser.id]
-  );
+    /* ================= REF SYSTEM ================= */
+    if (referredUserId) {
+      await q(
+        "INSERT INTO referrals (referrer_id, user_id) VALUES ($1,$2)",
+        [referredUserId, newUser.id]
+      );
 
-  await q(
-    "UPDATE users SET ref_count = COALESCE(ref_count,0) + 1 WHERE id=$1",
-    [referredUserId]
-  );
-}
+      await q(
+        "UPDATE users SET ref_count = COALESCE(ref_count,0) + 1 WHERE id=$1",
+        [referredUserId]
+      );
+    }
 
     /* ================= TOKEN ================= */
     const token = jwt.sign(
@@ -234,7 +268,11 @@ router.post("/login", async (req, res) => {
     }
 
     const r = await q(
-      "SELECT * FROM users WHERE email=$1",
+      `SELECT 
+        id, name, email, password, ref_code, ref_count,
+        avatar, telegram_id, telegram_username, role
+       FROM users 
+       WHERE email=$1`,
       [email]
     );
 
@@ -256,6 +294,7 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    /* ================= IMPORTANT: FULL USER ================= */
     res.json({
       token,
       user: {
@@ -263,6 +302,11 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         ref_code: user.ref_code,
+        ref_count: user.ref_count,
+        avatar: user.avatar,
+        telegram_id: user.telegram_id,
+        telegram_username: user.telegram_username,
+        role: user.role, // 🔥 ADMIN FIX
       },
     });
 

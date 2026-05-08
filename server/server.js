@@ -344,6 +344,7 @@ app.use("/market", marketRoutes);
 app.use("/promo", promoRoutes);
 app.use("/order", orderRoutes);
 app.use("/telegram", telegramRoutes);
+app.use("/admin", require("./routes/admin"));
 
 /* ================= HEALTH CHECK ================= */
 app.get("/health", (req, res) => {
