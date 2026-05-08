@@ -182,6 +182,7 @@ router.get("/me", auth, async (req, res) => {
     );
 
     const user = userRes.rows[0];
+    console.log("USER FROM DB:", user);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
