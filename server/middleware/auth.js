@@ -55,19 +55,14 @@ module.exports = async function (req, res, next) {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return res.status(401).json({ error: "No token" });
     }
 
-    const token = authHeader.slice(7).trim();
+    const token = authHeader.slice(7);
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded?.id) {
-      return res.status(401).json({ error: "Invalid token payload" });
-    }
-
-    // берем пользователя из БД (самый надежный вариант)
     const result = await q(
       "SELECT id, role FROM users WHERE id=$1",
       [decoded.id]
@@ -80,11 +75,13 @@ module.exports = async function (req, res, next) {
     }
 
     req.userId = user.id;
-    req.userRole = (user.role || "user").toLowerCase().trim();
+    req.userRole = user.role; // 🔥 ВАЖНО
+
+    console.log("AUTH ROLE:", req.userRole); // DEBUG
 
     next();
   } catch (e) {
-    console.log("AUTH ERROR:", e.message);
+    console.log("AUTH ERROR:", e);
     return res.status(401).json({ error: "Invalid token" });
   }
 };
