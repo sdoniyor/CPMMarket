@@ -26,6 +26,7 @@ export default function AdminUsers() {
       setError(null);
 
       const token = localStorage.getItem("token");
+      console.log("TOKEN FROM LOCALSTORAGE:", token);
 
       if (!token) {
         setError("No token found (not logged in)");
@@ -33,6 +34,7 @@ export default function AdminUsers() {
         return;
       }
 
+      console.log("CALLING /admin/users WITH TOKEN:", token);
       const res = await fetch(`${API}/admin/users`, {
         method: "GET",
         headers: {
