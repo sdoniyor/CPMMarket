@@ -8,10 +8,8 @@ const router = express.Router();
 /* ================= USERS ================= */
 router.get("/users", auth, admin, async (req, res) => {
   const result = await q(`
-    SELECT
-      id, name, email, avatar,
-      telegram_id, telegram_username,
-      ref_code, ref_count, role, created_at
+    SELECT id, name, email, avatar, telegram_id, telegram_username,
+           ref_code, ref_count, role, created_at
     FROM users
     ORDER BY id DESC
   `);
@@ -19,7 +17,7 @@ router.get("/users", auth, admin, async (req, res) => {
   res.json(result.rows);
 });
 
-/* ================= CARS (GET) ================= */
+/* ================= GET CARS ================= */
 router.get("/cars", auth, admin, async (req, res) => {
   const result = await q(`SELECT * FROM cars ORDER BY id DESC`);
   res.json(result.rows);
