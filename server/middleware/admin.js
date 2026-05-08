@@ -1,8 +1,8 @@
 module.exports = function (req, res, next) {
-  if (req.userRole !== "admin") {
-    return res.status(403).json({
-      error: "Admins only",
-    });
+  const role = (req.userRole || "").toLowerCase().trim();
+
+  if (role !== "admin") {
+    return res.status(403).json({ error: "Admins only" });
   }
 
   next();
