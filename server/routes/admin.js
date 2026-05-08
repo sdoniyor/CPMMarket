@@ -217,9 +217,13 @@ router.get("/debug/db", async (req, res) => {
 });
 
 
-router.get("/debug/users-all", auth, admin, async (req, res) => {
-  const r = await q("SELECT * FROM users LIMIT 50");
-  res.json(r.rows);
+router.get("/debug/users-all", async (req, res) => {
+  try {
+    const r = await q("SELECT * FROM users LIMIT 50");
+    res.json(r.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 module.exports = router;
