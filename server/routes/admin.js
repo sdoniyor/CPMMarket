@@ -56,15 +56,15 @@ router.put("/users/:id", auth, admin, async (req, res) => {
       `
       UPDATE users
       SET 
-        name=$1,
-        email=$2,
-        role=$3,
-        telegram_username=$4,
-        telegram_id=$5,
-        ref_code=$6,
-        ref_count=$7,
-        avatar=$8
-      WHERE id=$9
+        name = COALESCE($1, name),
+        email = COALESCE($2, email),
+        role = COALESCE($3, role),
+        telegram_username = COALESCE($4, telegram_username),
+        telegram_id = COALESCE($5, telegram_id),
+        ref_code = COALESCE($6, ref_code),
+        ref_count = COALESCE($7, ref_count),
+        avatar = COALESCE($8, avatar)
+      WHERE id = $9
       RETURNING *
       `,
       [
@@ -160,14 +160,15 @@ router.put("/cars/:id", auth, admin, async (req, res) => {
     const result = await q(
       `
       UPDATE cars
-      SET name=$1,
-          brand=$2,
-          dvigatel=$3,
-          power=$4,
-          speed=$5,
-          price=$6,
-          image_url=$7,
-          type=$8
+      SET 
+        name=$1,
+        brand=$2,
+        dvigatel=$3,
+        power=$4,
+        speed=$5,
+        price=$6,
+        image_url=$7,
+        type=$8
       WHERE id=$9
       RETURNING *
       `,
@@ -260,7 +261,7 @@ router.delete("/promos/:id", auth, admin, async (req, res) => {
   }
 });
 
-/* ================= DEBUG (SAFE) ================= */
+/* ================= DEBUG ================= */
 router.get("/debug/users-count", auth, admin, async (req, res) => {
   try {
     const r = await q("SELECT COUNT(*) FROM users");
