@@ -153,7 +153,6 @@
 
 
 
-
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -174,7 +173,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Missing fields" });
     }
 
-    /* ================= CHECK EMAIL ================= */
+    // check email
     const exist = await q(
       "SELECT id FROM users WHERE email=$1",
       [email]
@@ -186,7 +185,7 @@ router.post("/register", async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    /* ================= REFERRAL ================= */
+    /* ================= REF ================= */
     let referredUserId = null;
 
     if (referredBy) {
@@ -217,7 +216,7 @@ router.post("/register", async (req, res) => {
     /* ================= CREATE USER ================= */
     const r = await q(
       `
-      INSERT INTO users 
+      INSERT INTO users
       (name, email, password, ref_code, referred_by, role, ref_count)
       VALUES ($1,$2,$3,$4,$5,'user',0)
       RETURNING id, name, email, ref_code, role, ref_count
@@ -249,7 +248,14 @@ router.post("/register", async (req, res) => {
 
     res.json({
       token,
-      user: newUser,
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        ref_code: newUser.ref_code,
+        ref_count: newUser.ref_count,
+        role: (newUser.role || "user").toLowerCase().trim(), // 🔥 FIX
+      },
     });
 
   } catch (e) {
@@ -268,10 +274,11 @@ router.post("/login", async (req, res) => {
     }
 
     const r = await q(
-      `SELECT 
-        id, name, email, password, ref_code, ref_count,
+      `SELECT
+        id, name, email, password,
+        ref_code, ref_count,
         avatar, telegram_id, telegram_username, role
-       FROM users 
+       FROM users
        WHERE email=$1`,
       [email]
     );
@@ -294,7 +301,7 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    /* ================= IMPORTANT: FULL USER ================= */
+    /* ================= RESPONSE ================= */
     res.json({
       token,
       user: {
@@ -306,7 +313,7 @@ router.post("/login", async (req, res) => {
         avatar: user.avatar,
         telegram_id: user.telegram_id,
         telegram_username: user.telegram_username,
-        role: user.role, // 🔥 ADMIN FIX
+        role: (user.role || "user").toLowerCase().trim(), // 🔥 FIX
       },
     });
 
