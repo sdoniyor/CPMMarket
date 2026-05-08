@@ -526,7 +526,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <button 
-                onClick={() => window.open(`https://t.me/@CPMMarket_bot?start=${token}`, '_blank')}
+                onClick={() => window.open(`https://t.me/CPMMarket_bot?start=${token}`, '_blank')}
                 className="w-full md:w-auto bg-[#0088cc] text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:brightness-110 transition-all shadow-lg shadow-[#0088cc]/20 active:translate-y-1"
               >
                 Connect Bot
