@@ -144,60 +144,62 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
 bot.on("photo", async (msg) => {
   try {
     const chatId = msg.chat.id;
+    console.log("PHOTO FROM:", chatId);
 
-    const photos = msg.photo;
-    const biggestPhoto = photos[photos.length - 1];
+    const biggestPhoto = msg.photo[msg.photo.length - 1];
+    console.log("FILE ID:", biggestPhoto.file_id);
+
     const fileId = biggestPhoto.file_id;
 
-    /* user from DB */
     const userRes = await q(
       `
-      SELECT id, name, email, telegram_username
+      SELECT id,name,email,telegram_username
       FROM users
       WHERE telegram_id=$1
       `,
       [String(chatId)]
     );
 
+    console.log("DB USER:", userRes.rows);
+
     const user = userRes.rows[0];
 
-    let caption = `📸 New screenshot\n\n`;
+    let caption = "📸 New screenshot\n\n";
 
     if (user) {
-      caption +=
-        `👤 Name: ${user.name}\n` +
-        `🆔 ID: ${user.id}\n` +
-        `📧 Email: ${user.email}\n` +
-        `📨 Username: @${user.telegram_username || "-"}\n` +
-        `💬 Chat ID: ${chatId}`;
+      caption += `
+👤 Name: ${user.name}
+🆔 ID: ${user.id}
+📧 Email: ${user.email}
+📨 Username: @${user.telegram_username || "-"}
+💬 Chat ID: ${chatId}
+`;
     } else {
-      caption +=
-        `⚠ Unknown user\n` +
-        `💬 Chat ID: ${chatId}\n` +
-        `👤 TG: @${msg.from.username || "-"}`;
+      caption += `
+⚠ Unknown user
+💬 Chat ID: ${chatId}
+👤 TG: @${msg.from.username || "-"}
+`;
     }
 
-    /* send to admin */
+    console.log("ADMIN ID:", process.env.ADMIN_TELEGRAM_ID);
+
     await bot.sendPhoto(
-      ADMIN_ID,
+      process.env.ADMIN_TELEGRAM_ID,
       fileId,
-      {
-        caption,
-      }
+      { caption }
     );
 
-    /* reply user */
+    console.log("PHOTO SENT");
+
     await bot.sendMessage(
       chatId,
-      "✅ Screenshot sent successfully"
+      "✅ Screenshot sent"
     );
-  } catch (e) {
-    console.log("PHOTO ERROR:", e);
 
-    bot.sendMessage(
-      msg.chat.id,
-      "❌ Send failed"
-    );
+  } catch (e) {
+    console.log("PHOTO ERROR FULL:", e);
+    bot.sendMessage(msg.chat.id, "❌ Send failed");
   }
 });
 
