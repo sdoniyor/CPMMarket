@@ -8,9 +8,10 @@ const router = express.Router();
 /* ================= USERS ================= */
 router.get("/users", auth, admin, async (req, res) => {
   const result = await q(`
-    SELECT id, name, email, avatar,
-           telegram_id, telegram_username,
-           ref_code, ref_count, role, created_at
+    SELECT
+      id, name, email, avatar,
+      telegram_id, telegram_username,
+      ref_code, ref_count, role, created_at
     FROM users
     ORDER BY id DESC
   `);
@@ -18,58 +19,100 @@ router.get("/users", auth, admin, async (req, res) => {
   res.json(result.rows);
 });
 
-/* ================= CARS ================= */
+/* ================= CARS (GET) ================= */
 router.get("/cars", auth, admin, async (req, res) => {
   const result = await q(`SELECT * FROM cars ORDER BY id DESC`);
   res.json(result.rows);
 });
 
-/* 🔥 CREATE CAR (У ТЕБЯ ЕГО НЕ БЫЛО) */
+/* ================= CREATE CAR ================= */
 router.post("/cars", auth, admin, async (req, res) => {
-  const { brand, name, price, image_url } = req.body;
+  try {
+    const {
+      name,
+      brand,
+      dvigatel,
+      power,
+      speed,
+      price,
+      image_url,
+      type
+    } = req.body;
 
-  const result = await q(
-    `INSERT INTO cars (brand, name, price, image_url)
-     VALUES ($1,$2,$3,$4)
-     RETURNING *`,
-    [brand, name, price, image_url]
-  );
+    const result = await q(
+      `
+      INSERT INTO cars
+      (name, brand, dvigatel, power, speed, price, image_url, type)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      RETURNING *
+      `,
+      [name, brand, dvigatel, power, speed, price, image_url, type]
+    );
 
-  res.json(result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (e) {
+    console.log("CREATE CAR ERROR:", e);
+    res.status(500).json({ error: "create failed" });
+  }
 });
 
-/* 🔥 UPDATE CAR */
+/* ================= UPDATE CAR ================= */
 router.put("/cars/:id", auth, admin, async (req, res) => {
-  const { id } = req.params;
-  const { brand, name, price, image_url } = req.body;
+  try {
+    const { id } = req.params;
 
-  const result = await q(
-    `UPDATE cars
-     SET brand=$1, name=$2, price=$3, image_url=$4
-     WHERE id=$5
-     RETURNING *`,
-    [brand, name, price, image_url, id]
-  );
+    const {
+      name,
+      brand,
+      dvigatel,
+      power,
+      speed,
+      price,
+      image_url,
+      type
+    } = req.body;
 
-  res.json(result.rows[0]);
+    const result = await q(
+      `
+      UPDATE cars
+      SET name=$1,
+          brand=$2,
+          dvigatel=$3,
+          power=$4,
+          speed=$5,
+          price=$6,
+          image_url=$7,
+          type=$8
+      WHERE id=$9
+      RETURNING *
+      `,
+      [name, brand, dvigatel, power, speed, price, image_url, type, id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (e) {
+    console.log("UPDATE CAR ERROR:", e);
+    res.status(500).json({ error: "update failed" });
+  }
 });
 
-/* 🔥 DELETE CAR */
+/* ================= DELETE CAR ================= */
 router.delete("/cars/:id", auth, admin, async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  await q("DELETE FROM cars WHERE id=$1", [id]);
+    await q("DELETE FROM cars WHERE id=$1", [id]);
 
-  res.json({ success: true });
+    res.json({ success: true });
+  } catch (e) {
+    console.log("DELETE CAR ERROR:", e);
+    res.status(500).json({ error: "delete failed" });
+  }
 });
 
 /* ================= PROMOS ================= */
 router.get("/promos", auth, admin, async (req, res) => {
-  const result = await q(`
-    SELECT * FROM promo_codes
-    ORDER BY id DESC
-  `);
-
+  const result = await q(`SELECT * FROM promo_codes ORDER BY id DESC`);
   res.json(result.rows);
 });
 
