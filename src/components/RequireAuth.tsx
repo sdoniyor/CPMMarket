@@ -1,13 +1,15 @@
 import { Navigate } from "react-router-dom";
 
-export default function RequireAuth({ children }: any) {
-  const token = localStorage.getItem("token");
+export default function RequireAdmin({ children }: any) {
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
-  // ❌ нет токена → в auth
-  if (!token) {
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // ✅ есть токен → пускаем
+  if ((user.role || "").trim() !== "admin") {
+    return <Navigate to="/market" replace />;
+  }
+
   return children;
 }

@@ -63,7 +63,6 @@
 
 
 
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AuthPage from "./pages/AuthPage";
@@ -79,6 +78,7 @@ import AdminLayout from "./admin/layout/AdminLayout";
 import AdminUsers from "./admin/pages/AdminUsers";
 import AdminCars from "./admin/pages/AdminCars";
 import AdminPromos from "./admin/pages/AdminPromos";
+
 import RequireAdmin from "./components/RequireAdmin";
 
 export default function App() {
@@ -86,7 +86,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* 🔥 DEFAULT */}
+        {/* ================= DEFAULT ================= */}
         <Route path="/" element={<Navigate to="/auth" replace />} />
 
         {/* ================= AUTH ================= */}
@@ -118,7 +118,7 @@ export default function App() {
           }
         />
 
-        {/* ================= CAR DETAIL ================= */}
+        {/* ================= CAR ================= */}
         <Route
           path="/car/:id"
           element={
@@ -133,7 +133,7 @@ export default function App() {
 
         {/* ================= ADMIN PANEL ================= */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <RequireAuth>
               <RequireAdmin>
@@ -146,6 +146,9 @@ export default function App() {
           <Route path="cars" element={<AdminCars />} />
           <Route path="promos" element={<AdminPromos />} />
         </Route>
+
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/auth" replace />} />
 
       </Routes>
     </BrowserRouter>
