@@ -5,29 +5,55 @@ const admin = require("../middleware/admin");
 
 const router = express.Router();
 
+/* ================= MIDDLEWARE DEBUG ================= */
+router.use((req, res, next) => {
+  console.log(`[ADMIN] ${req.method} ${req.url}`);
+  next();
+});
+
 /* ================= USERS ================= */
 router.get("/users", auth, admin, async (req, res) => {
   try {
     const result = await q(`
       SELECT 
-        id, name, email, avatar,
-        telegram_id, telegram_username,
-        ref_code, ref_count, role, created_at
+        id,
+        name,
+        email,
+        avatar,
+        telegram_id,
+        telegram_username,
+        ref_code,
+        ref_count,
+        role,
+        created_at
       FROM users
       ORDER BY id DESC
     `);
 
+    if (!result.rows) {
+      return res.json([]);
+    }
+
     res.json(result.rows);
+
   } catch (e) {
     console.log("USERS ERROR:", e);
-    res.status(500).json({ error: "server error" });
+    res.status(500).json({
+      error: "users failed",
+      details: e.message,
+    });
   }
 });
 
 /* ================= CARS ================= */
 router.get("/cars", auth, admin, async (req, res) => {
-  const result = await q(`SELECT * FROM cars ORDER BY id DESC`);
-  res.json(result.rows);
+  try {
+    const result = await q(`SELECT * FROM cars ORDER BY id DESC`);
+    res.json(result.rows || []);
+  } catch (e) {
+    console.log("CARS ERROR:", e);
+    res.status(500).json({ error: "cars failed" });
+  }
 });
 
 router.post("/cars", auth, admin, async (req, res) => {
@@ -54,16 +80,19 @@ router.post("/cars", auth, admin, async (req, res) => {
     );
 
     res.json(result.rows[0]);
+
   } catch (e) {
     console.log("CREATE CAR ERROR:", e);
-    res.status(500).json({ error: "create failed" });
+    res.status(500).json({
+      error: "create car failed",
+      details: e.message,
+    });
   }
 });
 
 router.put("/cars/:id", auth, admin, async (req, res) => {
   try {
     const { id } = req.params;
-
     const {
       name,
       brand,
@@ -93,9 +122,13 @@ router.put("/cars/:id", auth, admin, async (req, res) => {
     );
 
     res.json(result.rows[0]);
+
   } catch (e) {
     console.log("UPDATE CAR ERROR:", e);
-    res.status(500).json({ error: "update failed" });
+    res.status(500).json({
+      error: "update car failed",
+      details: e.message,
+    });
   }
 });
 
@@ -106,16 +139,25 @@ router.delete("/cars/:id", auth, admin, async (req, res) => {
     await q("DELETE FROM cars WHERE id=$1", [id]);
 
     res.json({ success: true });
+
   } catch (e) {
     console.log("DELETE CAR ERROR:", e);
-    res.status(500).json({ error: "delete failed" });
+    res.status(500).json({
+      error: "delete car failed",
+      details: e.message,
+    });
   }
 });
 
 /* ================= PROMOS ================= */
 router.get("/promos", auth, admin, async (req, res) => {
-  const result = await q(`SELECT * FROM promo_codes ORDER BY id DESC`);
-  res.json(result.rows);
+  try {
+    const result = await q(`SELECT * FROM promo_codes ORDER BY id DESC`);
+    res.json(result.rows || []);
+  } catch (e) {
+    console.log("PROMOS ERROR:", e);
+    res.status(500).json({ error: "promos failed" });
+  }
 });
 
 router.post("/promos", auth, admin, async (req, res) => {
@@ -123,16 +165,22 @@ router.post("/promos", auth, admin, async (req, res) => {
     const { code, discount, rules } = req.body;
 
     const result = await q(
-      `INSERT INTO promo_codes (code, discount, rules)
-       VALUES ($1,$2,$3)
-       RETURNING *`,
+      `
+      INSERT INTO promo_codes (code, discount, rules)
+      VALUES ($1,$2,$3)
+      RETURNING *
+      `,
       [code, discount, rules]
     );
 
     res.json(result.rows[0]);
+
   } catch (e) {
     console.log("PROMO CREATE ERROR:", e);
-    res.status(500).json({ error: "create failed" });
+    res.status(500).json({
+      error: "create promo failed",
+      details: e.message,
+    });
   }
 });
 
@@ -142,17 +190,23 @@ router.put("/promos/:id", auth, admin, async (req, res) => {
     const { code, discount, rules } = req.body;
 
     const result = await q(
-      `UPDATE promo_codes
-       SET code=$1, discount=$2, rules=$3
-       WHERE id=$4
-       RETURNING *`,
+      `
+      UPDATE promo_codes
+      SET code=$1, discount=$2, rules=$3
+      WHERE id=$4
+      RETURNING *
+      `,
       [code, discount, rules, id]
     );
 
     res.json(result.rows[0]);
+
   } catch (e) {
     console.log("PROMO UPDATE ERROR:", e);
-    res.status(500).json({ error: "update failed" });
+    res.status(500).json({
+      error: "update promo failed",
+      details: e.message,
+    });
   }
 });
 
@@ -163,15 +217,33 @@ router.delete("/promos/:id", auth, admin, async (req, res) => {
     await q(`DELETE FROM promo_codes WHERE id=$1`, [id]);
 
     res.json({ success: true });
+
   } catch (e) {
     console.log("PROMO DELETE ERROR:", e);
-    res.status(500).json({ error: "delete failed" });
+    res.status(500).json({
+      error: "delete promo failed",
+      details: e.message,
+    });
   }
 });
 
+/* ================= DEBUG ================= */
 router.get("/debug/users-count", auth, admin, async (req, res) => {
-  const r = await q("SELECT COUNT(*) FROM users");
-  res.json(r.rows[0]);
+  try {
+    const r = await q("SELECT COUNT(*) FROM users");
+    res.json(r.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get("/debug/users-raw", auth, admin, async (req, res) => {
+  try {
+    const r = await q("SELECT * FROM users ORDER BY id DESC LIMIT 20");
+    res.json(r.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 module.exports = router;
