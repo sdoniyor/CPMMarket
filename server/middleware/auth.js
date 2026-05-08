@@ -48,7 +48,6 @@
 // };
 
 
-
 const jwt = require("jsonwebtoken");
 const { q } = require("../db");
 
@@ -60,32 +59,26 @@ module.exports = async function (req, res, next) {
       return res.status(401).json({ error: "No token" });
     }
 
-    const token = authHeader.slice(7).trim();
+    const token = authHeader.slice(7);
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded.id) {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-
-    // 🔥 берем юзера из базы
-    const result = await q(
+    const userRes = await q(
       "SELECT id, role FROM users WHERE id=$1",
       [decoded.id]
     );
 
-    const user = result.rows[0];
+    const user = userRes.rows[0];
 
     if (!user) {
       return res.status(401).json({ error: "User not found" });
     }
 
     req.userId = user.id;
-    req.userRole = (user.role || "").trim(); // 🔥 FIX \n проблема
+    req.userRole = user.role?.trim(); // 🔥 ВАЖНО
 
     next();
   } catch (e) {
-    console.log("AUTH ERROR:", e.message);
     return res.status(401).json({ error: "Invalid token" });
   }
 };
