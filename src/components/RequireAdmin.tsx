@@ -1,14 +1,15 @@
 import { Navigate } from "react-router-dom";
 
 export default function RequireAdmin({ children }: any) {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const userStr = localStorage.getItem("user");
 
-  // если нет пользователя
-  if (!user) {
+  if (!userStr) {
     return <Navigate to="/auth" replace />;
   }
 
-  // если не админ
+  const user = JSON.parse(userStr);
+
+  // 🔥 защита админки
   if (user.role !== "admin") {
     return <Navigate to="/market" replace />;
   }
