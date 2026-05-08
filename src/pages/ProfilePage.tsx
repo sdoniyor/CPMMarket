@@ -273,7 +273,8 @@ import {
   Check, 
   Share2, 
   LogOut,
-  Gift
+  Gift,
+  Send
 } from "lucide-react";
 
 const API = "https://cpmmarker.onrender.com";
@@ -308,7 +309,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const token = localStorage.getItem("token");
 
-  /* ================= LOAD ================= */
+  /* ================= LOAD DATA ================= */
   const loadUser = async () => {
     try {
       const res = await fetch(`${API}/profile/me`, {
@@ -331,7 +332,7 @@ export default function ProfilePage() {
     loadUser();
   }, []);
 
-  /* ================= UPLOAD AVATAR ================= */
+  /* ================= AVATAR LOGIC ================= */
   const uploadAvatar = async () => {
     if (!file) return alert("Выбери фото");
     const form = new FormData();
@@ -346,14 +347,14 @@ export default function ProfilePage() {
       setUser(data.user);
       setFile(null);
       setPreview(null);
-      setPromoNotice("Avatar updated!");
+      setPromoNotice("Profile updated!");
       setTimeout(() => setPromoNotice(null), 3000);
     } else {
       alert(data?.error || "Upload error");
     }
   };
 
-  /* ================= PROMO ================= */
+  /* ================= PROMO LOGIC ================= */
   const applyPromo = async () => {
     if (!promo.trim()) return alert("Введите промокод");
     const res = await fetch(`${API}/promo/redeem`, {
@@ -367,13 +368,8 @@ export default function ProfilePage() {
     const data = await res.json();
     if (data?.success) {
       setPromo("");
-      const updated = await fetch(`${API}/profile/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const u = await updated.json();
-      setUser(u);
-      setDiscount(u?.active_promo?.rules?.discount ?? 0);
-      setPromoNotice(`🎉 Promo activated! -${u?.active_promo?.rules?.discount || 0}%`);
+      loadUser(); // Перезагружаем профиль
+      setPromoNotice(`🎉 Activated! -${data.discount || 0}%`);
       setTimeout(() => setPromoNotice(null), 3000);
     } else {
       alert(data?.error || "Invalid promo");
@@ -382,7 +378,7 @@ export default function ProfilePage() {
 
   if (!user) return (
     <div className="min-h-screen flex items-center justify-center bg-[#08090a] text-yellow-400 font-black italic tracking-widest">
-      LOADING PROFILE...
+      LOADING...
     </div>
   );
 
@@ -390,174 +386,162 @@ export default function ProfilePage() {
   const refLink = user?.ref_code ? `${window.location.origin}/auth?ref=${user.ref_code}` : `${window.location.origin}/auth`;
 
   return (
-    <div className="min-h-screen bg-[#08090a] text-white p-6 pb-20 font-sans">
-      <div className="max-w-4xl mx-auto space-y-6 pt-10">
+    <div className="min-h-screen bg-[#08090a] text-white p-4 md:p-8 pb-24 font-sans selection:bg-yellow-400 selection:text-black">
+      <div className="max-w-4xl mx-auto space-y-6">
 
-        {/* NOTIFICATION */}
+        {/* ALERTS */}
         <AnimatePresence>
           {promoNotice && (
             <motion.div 
-              initial={{ opacity: 0, y: -20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-green-500/20 border border-green-500/50 text-green-400 px-6 py-4 rounded-2xl font-black italic uppercase tracking-tighter shadow-lg shadow-green-500/10 flex justify-between items-center"
+              initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+              className="bg-yellow-400 text-black px-6 py-4 rounded-2xl font-black italic uppercase text-center shadow-[0_0_20px_rgba(250,204,21,0.2)]"
             >
-              {promoNotice} <Check size={20} />
+              {promoNotice}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* HEADER & AVATAR BLOCK */}
+        {/* PROFILE HEADER */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }} 
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#111214] border border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-[#111214] border border-white/5 rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 blur-[100px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-yellow-400/5 blur-[120px] pointer-events-none" />
           
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-            {/* Avatar Section */}
+            {/* Avatar Component */}
             <div className="relative group">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2rem] overflow-hidden bg-white/5 border-2 border-white/10 p-1 group-hover:border-yellow-400 transition-colors duration-500">
+              <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2.5rem] overflow-hidden bg-white/5 border-2 border-white/10 p-1 group-hover:border-yellow-400 transition-all duration-500 shadow-2xl">
                 {avatarUrl ? (
-                  <img src={avatarUrl} className="w-full h-full object-cover rounded-[1.8rem]" />
+                  <img src={avatarUrl} className="w-full h-full object-cover rounded-[2.3rem]" alt="profile" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-5xl font-black text-white/10">{user.name?.[0]}</div>
+                  <div className="w-full h-full flex items-center justify-center text-6xl font-black text-white/5 uppercase">{user.name?.[0]}</div>
                 )}
               </div>
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 bg-yellow-400 text-black p-3 rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all"
+                className="absolute -bottom-2 -right-2 bg-yellow-400 text-black p-4 rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all z-20"
               >
-                <Camera size={20} />
+                <Camera size={22} />
               </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                hidden 
-                accept="image/*" 
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) {
-                    setFile(f);
-                    const reader = new FileReader();
-                    reader.onload = () => setPreview(reader.result as string);
-                    reader.readAsDataURL(f);
-                  }
-                }} 
-              />
+              <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) { setFile(f); const r = new FileReader(); r.onload = () => setPreview(r.result as string); r.readAsDataURL(f); }
+              }} />
             </div>
 
-            <div className="text-center md:text-left flex-1">
-              <h1 className="text-4xl md:text-5xl font-[900] italic uppercase tracking-tighter leading-none mb-2">{user.name}</h1>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-center md:justify-start gap-2 text-white/40 font-bold uppercase text-[10px] tracking-widest">
+            <div className="text-center md:text-left flex-1 space-y-3">
+              <h1 className="text-4xl md:text-6xl font-[1000] italic uppercase tracking-tighter leading-[0.8]">{user.name}</h1>
+              <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                <span className="flex items-center gap-2 text-white/30 font-bold uppercase text-[10px] tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/5">
                   <Mail size={12} /> {user.email || "No email"}
-                </div>
-                <div className="inline-flex items-center justify-center md:justify-start gap-2 text-yellow-400 font-black italic uppercase text-sm tracking-tighter">
-                  <Zap size={14} fill="currentColor" /> Discount Active: {discount}%
-                </div>
+                </span>
+                <span className="flex items-center gap-2 text-yellow-400 font-black italic uppercase text-[10px] tracking-widest bg-yellow-400/10 px-3 py-1 rounded-full border border-yellow-400/20">
+                  <Zap size={12} fill="currentColor" /> Discount: {discount}%
+                </span>
               </div>
+              
+              {preview && (
+                <motion.button 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  onClick={uploadAvatar}
+                  className="w-full md:w-auto bg-green-500 text-black px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-green-400 transition-all"
+                >
+                  Confirm New Avatar
+                </motion.button>
+              )}
             </div>
 
-            {/* Stats: Ref Count */}
-            <div className="bg-white/5 border border-white/5 p-6 rounded-3xl text-center min-w-[140px] backdrop-blur-md">
-                <div className="text-white/20 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Referrals</div>
-                <div className="text-4xl font-[900] italic text-white tracking-tighter leading-none">{user.ref_count || 0}</div>
-                <div className="mt-2 flex justify-center text-yellow-400/30"><Share2 size={16} /></div>
+            {/* Stats */}
+            <div className="grid grid-cols-1 gap-2 min-w-[120px]">
+                <div className="bg-white/5 border border-white/5 p-4 rounded-[2rem] text-center">
+                    <div className="text-white/20 text-[10px] font-black uppercase tracking-widest mb-1">Referrals</div>
+                    <div className="text-3xl font-black italic text-white leading-none">{user.ref_count || 0}</div>
+                </div>
             </div>
           </div>
-
-          <AnimatePresence>
-            {preview && (
-              <motion.button 
-                initial={{ height: 0, opacity: 0 }} 
-                animate={{ height: 'auto', opacity: 1 }} 
-                exit={{ height: 0, opacity: 0 }}
-                onClick={uploadAvatar}
-                className="mt-6 w-full bg-green-500 text-black py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-green-500/20"
-              >
-                Save New Avatar
-              </motion.button>
-            )}
-          </AnimatePresence>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* REF SYSTEM */}
           <motion.div 
-            initial={{ opacity: 0, x: -20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-[#111214] border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-between"
+            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+            className="bg-[#111214] border border-white/5 p-8 rounded-[2.5rem] space-y-6"
           >
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-yellow-400/10 rounded-lg text-yellow-400"><Share2 size={20} /></div>
-                <h2 className="text-xl font-black italic uppercase tracking-tighter">Referral System</h2>
-              </div>
-              <div className="relative group">
-                <input 
-                  value={refLink} 
-                  readOnly 
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 pr-14 text-sm font-medium text-white/40 focus:outline-none" 
-                />
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(refLink);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }}
-                  className="absolute right-2 top-2 p-3 bg-white/5 hover:bg-yellow-400 hover:text-black rounded-xl transition-all"
-                >
-                  {copied ? <Check size={18} /> : <Copy size={18} />}
-                </button>
-              </div>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white/5 rounded-2xl text-yellow-400"><Share2 size={20} /></div>
+              <h2 className="text-xl font-black italic uppercase tracking-tighter">Referral Link</h2>
             </div>
-            <p className="mt-6 text-[10px] font-bold text-white/20 uppercase tracking-[0.15em] leading-relaxed">
-              Share this link to earn points and increase your <span className="text-yellow-400">personal discount</span>.
-            </p>
+            <div className="relative group">
+              <input value={refLink} readOnly className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 pr-14 text-sm font-medium text-white/30 focus:outline-none" />
+              <button onClick={() => { navigator.clipboard.writeText(refLink); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                className="absolute right-2 top-2 p-3 bg-white/5 hover:bg-yellow-400 hover:text-black rounded-xl transition-all"
+              >
+                {copied ? <Check size={18} /> : <Copy size={18} />}
+              </button>
+            </div>
           </motion.div>
 
           {/* PROMO SYSTEM */}
           <motion.div 
-            initial={{ opacity: 0, x: 20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-[#111214] border border-white/5 p-8 rounded-[2.5rem]"
+            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+            className="bg-[#111214] border border-white/5 p-8 rounded-[2.5rem] space-y-6"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-yellow-400/10 rounded-lg text-yellow-400"><Gift size={20} /></div>
-              <h2 className="text-xl font-black italic uppercase tracking-tighter">Redeem Code</h2>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white/5 rounded-2xl text-yellow-400"><Gift size={20} /></div>
+              <h2 className="text-xl font-black italic uppercase tracking-tighter">Promo Code</h2>
             </div>
             <div className="flex gap-2">
-              <input 
-                placeholder="ENTER PROMO" 
-                value={promo} 
-                onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm font-black tracking-widest placeholder:text-white/10 focus:border-yellow-400/50 outline-none transition-colors" 
-              />
-              <button 
-                onClick={applyPromo}
-                className="bg-yellow-400 text-black px-6 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/10 active:scale-95"
-              >
+              <input placeholder="ENTER CODE" value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())}
+                className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm font-black tracking-widest placeholder:text-white/10 focus:border-yellow-400/50 outline-none transition-colors" />
+              <button onClick={applyPromo} className="bg-yellow-400 text-black px-6 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-yellow-300 transition-all active:scale-95">
                 Apply
               </button>
-            </div>
-            <div className="mt-6 flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Current Status</span>
-                <span className="text-xs font-black italic text-yellow-400">
-                  {user.active_promo ? user.active_promo.promo_code : "NO ACTIVE PROMO"}
-                </span>
             </div>
           </motion.div>
         </div>
 
-        {/* LOGOUT BUTTON */}
-        <motion.button 
-          whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-          onClick={() => { localStorage.removeItem("token"); window.location.href = "/auth"; }}
-          className="w-full py-6 rounded-[2rem] border border-red-500/10 text-red-500/50 hover:text-red-500 font-black italic uppercase tracking-[0.3em] text-xs transition-all flex items-center justify-center gap-3"
+        {/* TELEGRAM CONNECTION */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-[#111214] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group"
         >
-          <LogOut size={16} /> Terminate Session
+          <div className="absolute inset-0 bg-[#0088cc]/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            <div className="flex items-center gap-5 text-center md:text-left flex-col md:flex-row">
+              <div className="p-5 bg-[#0088cc]/10 rounded-[1.5rem] text-[#0088cc] shadow-inner">
+                <Send size={28} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter">Telegram</h2>
+                <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
+                  {user.telegram_id ? `Linked: @${user.telegram_username}` : "Sync for exclusive car parts"}
+                </p>
+              </div>
+            </div>
+
+            {user.telegram_id ? (
+              <div className="flex items-center gap-2 text-green-400 font-black italic uppercase text-xs tracking-widest bg-green-400/5 px-6 py-3 rounded-2xl border border-green-400/10">
+                <Check size={16} /> Account Linked
+              </div>
+            ) : (
+              <button 
+                onClick={() => window.open(`https://t.me/@CPMMarket_bot?start=${token}`, '_blank')}
+                className="w-full md:w-auto bg-[#0088cc] text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:brightness-110 transition-all shadow-lg shadow-[#0088cc]/20 active:translate-y-1"
+              >
+                Connect Bot
+              </button>
+            )}
+          </div>
+        </motion.div>
+
+        {/* LOGOUT */}
+        <motion.button 
+          whileHover={{ x: 5 }}
+          onClick={() => { localStorage.removeItem("token"); window.location.href = "/auth"; }}
+          className="w-full py-6 rounded-[2rem] border border-white/5 text-white/20 hover:text-red-500 hover:border-red-500/20 font-black italic uppercase tracking-[0.4em] text-[10px] transition-all flex items-center justify-center gap-3"
+        >
+          <LogOut size={14} /> Terminate Session
         </motion.button>
 
       </div>
