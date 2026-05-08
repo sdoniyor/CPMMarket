@@ -169,4 +169,9 @@ router.delete("/promos/:id", auth, admin, async (req, res) => {
   }
 });
 
+router.get("/debug/users-count", auth, admin, async (req, res) => {
+  const r = await q("SELECT COUNT(*) FROM users");
+  res.json(r.rows[0]);
+});
+
 module.exports = router;
