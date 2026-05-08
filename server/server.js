@@ -290,16 +290,9 @@ const path = require("path");
 const fs = require("fs");
 const morgan = require("morgan");
 
-const authRoutes = require("./routes/auth");
-const profileRoutes = require("./routes/profile");
-const marketRoutes = require("./routes/market");
-const promoRoutes = require("./routes/promo");
-const orderRoutes = require("./routes/order");
-const telegramRoutes = require("./routes/telegram");
-
 const app = express();
 
-/* ================= TRUST PROXY (IMPORTANT for Render) ================= */
+/* ================= TRUST PROXY ================= */
 app.set("trust proxy", 1);
 
 /* ================= UPLOADS ================= */
@@ -307,70 +300,54 @@ const uploadDir = path.join(__dirname, "uploads");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("📁 uploads created:", uploadDir);
 }
 
-/* ================= STATIC FILES ================= */
-app.use("/uploads", express.static(uploadDir, {
-  maxAge: "7d",
-  etag: true,
-}));
+/* ================= STATIC ================= */
+app.use("/uploads", express.static(uploadDir));
 
-/* ================= SECURITY / CORS ================= */
+/* ================= CORS ================= */
 app.use(cors({
-  origin: process.env.CLIENT_URL || true,
+  origin: process.env.CLIENT_URL || "*",
   credentials: true,
 }));
 
-/* ================= BODY PARSERS ================= */
-app.use(express.json({ limit: "10mb" }));
+/* ================= BODY ================= */
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* ================= LOGGING ================= */
-if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
-}
-
-/* ================= REQUEST LOGGER ================= */
-app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.url}`);
-  next();
-});
+/* ================= LOGS ================= */
+app.use(morgan("dev"));
 
 /* ================= ROUTES ================= */
-app.use("/auth", authRoutes);
-app.use("/profile", profileRoutes);
-app.use("/market", marketRoutes);
-app.use("/promo", promoRoutes);
-app.use("/order", orderRoutes);
-app.use("/telegram", telegramRoutes);
+app.use("/auth", require("./routes/auth"));
+app.use("/profile", require("./routes/profile"));
+app.use("/market", require("./routes/market"));
+app.use("/promo", require("./routes/promo"));
+app.use("/order", require("./routes/order"));
+app.use("/telegram", require("./routes/telegram"));
+
+/* 🔥 ADMIN ROUTES (ВАЖНО) */
 app.use("/admin", require("./routes/admin"));
 
-/* ================= HEALTH CHECK ================= */
+/* ================= HEALTH ================= */
 app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    uptime: process.uptime(),
-    time: new Date().toISOString(),
-  });
+  res.json({ ok: true });
 });
 
-/* ================= 404 HANDLER ================= */
+/* ================= 404 ================= */
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });
 });
 
-/* ================= ERROR HANDLER ================= */
+/* ================= ERROR ================= */
 app.use((err, req, res, next) => {
-  console.error("🔥 SERVER ERROR:", err);
-  res.status(500).json({
-    error: "Internal server error",
-  });
+  console.error(err);
+  res.status(500).json({ error: "Server error" });
 });
 
-/* ================= START SERVER ================= */
+/* ================= START ================= */
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("🚀 Server running on", PORT);
 });
