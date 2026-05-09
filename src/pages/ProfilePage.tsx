@@ -337,7 +337,7 @@ export default function ProfilePage() {
     if (!file) return alert("Выбери фото");
     const form = new FormData();
     form.append("avatar", file);
-    const res = await fetch(`${API}/profile/upload-avatar`, {
+    const res = await fetch(`${API}/api/profile/upload-avatar`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: form,
