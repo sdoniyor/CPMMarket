@@ -492,9 +492,16 @@ export default function ProfilePage() {
               <h2 className="text-xl font-black italic uppercase tracking-tighter">Promo Code</h2>
             </div>
             <div className="flex gap-2">
-              <input placeholder="ENTER CODE" value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm font-black tracking-widest placeholder:text-white/10 focus:border-yellow-400/50 outline-none transition-colors" />
-              <button onClick={applyPromo} className="bg-yellow-400 text-black px-6 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-yellow-300 transition-all active:scale-95">
+              <input
+                placeholder="ENTER CODE"
+                value={promo}
+                onChange={(e) => setPromo(e.target.value)}
+                className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm font-black tracking-widest placeholder:text-white/10 focus:border-yellow-400/50 outline-none transition-colors"
+              />
+              <button
+                onClick={applyPromo}
+                className="bg-yellow-400 text-black px-6 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-yellow-300 transition-all active:scale-95"
+              >
                 Apply
               </button>
             </div>
