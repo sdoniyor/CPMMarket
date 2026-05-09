@@ -157,13 +157,71 @@
 
 
 
-
 const express = require("express");
 const auth = require("../middleware/auth");
 const { q } = require("../db");
 
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
 const router = express.Router();
 
+/* ================= UPLOAD CONFIG ================= */
+const uploadDir = path.join(__dirname, "../uploads");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (_, __, cb) => cb(null, uploadDir),
+  filename: (_, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, Date.now() + ext);
+  },
+});
+
+const upload = multer({ storage });
+
+/* ================= UPLOAD AVATAR ================= */
+router.post(
+  "/upload-avatar",
+  auth,
+  upload.single("avatar"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file" });
+      }
+
+      const avatarPath = `/uploads/${req.file.filename}`;
+
+      await q(
+        `UPDATE users SET avatar=$1 WHERE id=$2`,
+        [avatarPath, req.userId]
+      );
+
+      const userRes = await q(
+        `SELECT id,name,email,avatar,ref_code,telegram_username,telegram_id,role
+         FROM users
+         WHERE id=$1`,
+        [req.userId]
+      );
+
+      return res.json({
+        success: true,
+        user: userRes.rows[0],
+      });
+
+    } catch (e) {
+      console.log("UPLOAD ERROR:", e);
+      return res.status(500).json({ error: "Upload error" });
+    }
+  }
+);
+
+/* ================= GET PROFILE ================= */
 router.get("/me", auth, async (req, res) => {
   try {
     const userRes = await q(
@@ -182,27 +240,22 @@ router.get("/me", auth, async (req, res) => {
     );
 
     const user = userRes.rows[0];
-    console.log("USER FROM DB:", user);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    /* ================= REF COUNT ================= */
     const refs = await q(
       `SELECT COUNT(*) FROM referrals WHERE referrer_id=$1`,
       [req.userId]
     );
 
-    /* ================= ACTIVE PROMO ================= */
     const promoRes = await q(
-      `
-      SELECT promo_code, discount, rules
-      FROM user_promos
-      WHERE user_id=$1 AND consumed=false
-      ORDER BY id DESC
-      LIMIT 1
-      `,
+      `SELECT promo_code, discount, rules
+       FROM user_promos
+       WHERE user_id=$1 AND consumed=false
+       ORDER BY id DESC
+       LIMIT 1`,
       [req.userId]
     );
 
@@ -225,29 +278,23 @@ router.get("/me", auth, async (req, res) => {
       validTypes.includes(rules);
 
     return res.json({
-      /* ================= USER ================= */
       id: user.id,
       name: user.name,
       email: user.email,
       avatar: user.avatar || null,
-
-      /* ================= ADMIN ROLE (🔥 FIX) ================= */
       role: user.role || "user",
 
-      /* ================= REF ================= */
       ref_code: user.ref_code,
       ref_count: Number(refs.rows?.[0]?.count || 0),
 
-      /* ================= TG ================= */
       telegram_username: user.telegram_username,
       telegram_id: user.telegram_id,
 
-      /* ================= PROMO ================= */
       active_promo: isValidPromo
         ? {
             promo_code: promo.promo_code,
             discount: Number(promo.discount),
-            rules: rules,
+            rules,
           }
         : null,
     });
