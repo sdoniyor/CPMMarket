@@ -637,7 +637,7 @@ export default function ProfilePage() {
     });
     const data = await res.json();
     if (data?.success) {
-      setPromoNotice(`Success! +${data.discount}% activated`);
+      setPromoNotice(`ПРОМОКОД АКТИВИРОВАН: +${data.discount}%`);
       setPromo("");
       const r = await fetch(`${API}/profile/me`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -651,8 +651,8 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030407] text-cyan-400 font-mono tracking-widest animate-pulse">
-        INITIALIZING_SESSION...
+      <div className="min-h-screen flex items-center justify-center bg-[#080808] text-yellow-500 font-black tracking-tighter text-2xl uppercase italic">
+        Loading_Data...
       </div>
     );
   }
@@ -668,93 +668,96 @@ export default function ProfilePage() {
   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
 
   return (
-    <div className="min-h-screen bg-[#030407] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-[#030407] to-black text-slate-200 p-4 md:p-10 selection:bg-cyan-500/30">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#080808] text-zinc-100 p-4 md:p-10 font-sans selection:bg-yellow-500 selection:text-black">
+      <div className="max-w-4xl mx-auto space-y-6">
         
-        {/* TOAST NOTIFICATION */}
+        {/* Уведомление */}
         {promoNotice && (
-          <div className="fixed top-6 right-6 z-50 animate-bounce">
-            <div className="bg-cyan-500 text-black font-bold px-6 py-3 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.5)]">
-              {promoNotice}
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 animate-slide-down">
+            <div className="bg-yellow-500 text-black font-black py-4 px-6 rounded-none shadow-[8px_8px_0px_0px_rgba(255,215,0,0.2)] flex justify-between items-center border-2 border-black">
+              <span>{promoNotice}</span>
             </div>
           </div>
         )}
 
-        {/* HEADER / PROFILE CARD */}
-        <section className="relative overflow-hidden backdrop-blur-md bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-8 group transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.05)]">
-          <div className="relative group/avatar">
-            <div className="w-32 h-32 rounded-3xl overflow-hidden ring-2 ring-white/10 ring-offset-4 ring-offset-[#030407] group-hover/avatar:ring-cyan-500/50 transition-all duration-500 shadow-2xl">
+        {/* Профиль заголовок */}
+        <section className="bg-zinc-900 border-l-8 border-yellow-500 p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl transition-all hover:translate-x-1">
+          <div className="relative">
+            <div className="w-32 h-32 bg-zinc-800 border-2 border-yellow-500 overflow-hidden shadow-[5px_5px_0px_0px_#eab308]">
               {avatarUrl ? (
-                <img src={avatarUrl} className="w-full h-full object-cover transition duration-700 group-hover/avatar:scale-110" />
+                <img src={avatarUrl} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-cyan-900/40 to-slate-800 flex items-center justify-center text-5xl font-bold text-cyan-400">
+                <div className="w-full h-full flex items-center justify-center text-5xl font-black text-yellow-500">
                   {user.name?.[0]}
                 </div>
               )}
             </div>
-            <div className="absolute -bottom-2 -right-2 bg-cyan-500 w-6 h-6 rounded-full border-4 border-[#030407]"></div>
           </div>
 
-          <div className="text-center md:text-left space-y-2">
-            <h1 className="text-4xl font-black tracking-tight text-white uppercase italic">
+          <div className="text-center md:text-left">
+            <h1 className="text-4xl font-black uppercase tracking-tight italic text-white leading-none mb-2">
               {user.name}
             </h1>
-            <p className="text-slate-500 font-mono text-sm tracking-tighter uppercase">{user.email}</p>
-            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 px-4 py-1 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span className="text-cyan-400 text-xs font-bold tracking-widest">LOYALTY: {discount}% OFF</span>
+            <p className="text-zinc-500 font-mono text-sm mb-4">{user.email}</p>
+            <div className="inline-block bg-yellow-500 text-black px-3 py-1 font-bold text-xs uppercase skew-x-[-12deg]">
+              Скидка: {discount}%
             </div>
           </div>
         </section>
 
+        {/* Сетка инструментов */}
         <div className="grid md:grid-cols-2 gap-6">
-          {/* REFERRAL BOX */}
-          <div className="backdrop-blur-sm bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-6 hover:bg-white/[0.04] transition-all group">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 group-hover:text-violet-400 transition">Network Link</label>
-            <div className="relative flex items-center">
+          {/* Рефералка */}
+          <div className="bg-zinc-900/50 border border-zinc-800 p-6 transition-all hover:border-yellow-500/50 group">
+            <h2 className="text-yellow-500 text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-yellow-500"></span> Реферальная ссылка
+            </h2>
+            <div className="flex flex-col gap-3">
               <input
                 value={refLink}
                 readOnly
-                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-4 pr-24 text-xs font-mono text-cyan-100 focus:outline-none focus:border-violet-500/50 transition"
+                className="w-full bg-black border border-zinc-700 py-3 px-4 text-xs font-mono text-zinc-400 focus:outline-none"
               />
               <button
                 onClick={() => navigator.clipboard.writeText(refLink)}
-                className="absolute right-1 bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-transform active:scale-95"
+                className="w-full bg-zinc-800 hover:bg-yellow-500 text-yellow-500 hover:text-black font-bold py-3 transition-colors uppercase text-sm"
               >
-                Copy
+                Копировать
               </button>
             </div>
           </div>
 
-          {/* PROMO BOX */}
-          <div className="backdrop-blur-sm bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-6 hover:bg-white/[0.04] transition-all group">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 group-hover:text-yellow-400 transition">Access Code</label>
-            <div className="relative flex items-center">
+          {/* Промокоды */}
+          <div className="bg-zinc-900/50 border border-zinc-800 p-6 transition-all hover:border-yellow-500/50 group">
+            <h2 className="text-yellow-500 text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-yellow-500"></span> Промокод
+            </h2>
+            <div className="flex flex-col gap-3">
               <input
                 value={promo}
                 onChange={(e) => setPromo(e.target.value)}
-                placeholder="ENTER_CODE..."
-                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-4 pr-24 text-xs font-mono text-yellow-100 placeholder:text-white/10 focus:outline-none focus:border-yellow-500/50 transition"
+                placeholder="ВВЕДИТЕ_КОД"
+                className="w-full bg-black border border-zinc-700 py-3 px-4 text-xs font-mono text-yellow-500 placeholder:text-zinc-800 focus:border-yellow-500 focus:outline-none transition"
               />
               <button
                 onClick={applyPromo}
-                className="absolute right-1 bg-yellow-500 hover:bg-yellow-400 text-black text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-transform active:scale-95"
+                className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 transition-all uppercase text-sm shadow-[0_4px_0_0_#854d0e] active:shadow-none active:translate-y-1"
               >
-                Apply
+                Активировать
               </button>
             </div>
           </div>
         </div>
 
-        {/* AVATAR UPLOAD SECTION */}
-        <div className="backdrop-blur-sm bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-8 flex flex-col items-center gap-6 border-dashed hover:border-cyan-500/30 transition group">
-          <div className="text-center">
-            <h3 className="text-sm font-bold uppercase tracking-[0.3em] text-white/60 mb-2">Identity Update</h3>
-            <p className="text-xs text-slate-500">Supported formats: JPG, PNG, WEBP (Max 2MB)</p>
+        {/* Загрузка аватара */}
+        <div className="bg-zinc-900 border-2 border-zinc-800 p-8 flex flex-col items-center gap-6">
+          <div className="w-full text-left">
+            <h2 className="text-white text-lg font-bold uppercase italic">Обновить аватар</h2>
+            <p className="text-zinc-500 text-xs">Выберите файл для синхронизации профиля</p>
           </div>
 
-          <div className="flex flex-col items-center w-full max-w-xs gap-4">
-             <label className="w-full cursor-pointer">
+          <div className="w-full flex flex-col items-center gap-4">
+             <label className="w-full">
                 <input
                     type="file"
                     accept="image/*"
@@ -768,24 +771,25 @@ export default function ProfilePage() {
                         r.readAsDataURL(f);
                     }}
                 />
-                <div className="bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10 py-3 px-6 rounded-xl text-center text-xs font-bold uppercase tracking-widest transition duration-300">
-                    {file ? file.name : "Select File"}
+                <div className="w-full bg-black border-2 border-dashed border-zinc-700 hover:border-yellow-500 py-6 px-4 rounded-lg text-center cursor-pointer transition">
+                    <span className="text-zinc-500 text-xs font-bold uppercase">
+                        {file ? file.name : "Кликните для выбора изображения"}
+                    </span>
                 </div>
              </label>
 
             {preview && (
-              <div className="relative group/preview">
-                 <img src={preview} className="w-24 h-24 rounded-2xl object-cover ring-2 ring-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-in zoom-in-75 duration-300" />
-                 <div className="absolute inset-0 bg-cyan-500/20 rounded-2xl animate-pulse"></div>
+              <div className="p-1 bg-yellow-500">
+                 <img src={preview} className="w-20 h-20 object-cover" />
               </div>
             )}
 
             <button
               onClick={uploadAvatar}
               disabled={!file}
-              className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-20 disabled:cursor-not-allowed text-white text-xs font-black uppercase py-4 rounded-xl shadow-lg shadow-cyan-900/20 transition-all duration-300"
+              className="w-full max-w-xs bg-white hover:bg-yellow-500 text-black font-black uppercase py-4 transition-all disabled:opacity-10"
             >
-              Sync Identity
+              Сохранить изменения
             </button>
           </div>
         </div>
