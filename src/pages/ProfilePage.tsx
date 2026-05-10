@@ -637,7 +637,7 @@ export default function ProfilePage() {
     });
     const data = await res.json();
     if (data?.success) {
-      setPromoNotice(`ПРОМОКОД АКТИВИРОВАН: +${data.discount}%`);
+      setPromoNotice(`Успех! +${data.discount}% активировано`);
       setPromo("");
       const r = await fetch(`${API}/profile/me`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -651,8 +651,8 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080808] text-yellow-500 font-black tracking-tighter text-2xl uppercase italic">
-        Loading_Data...
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-yellow-400 font-medium tracking-wide animate-pulse">
+        Загрузка профиля...
       </div>
     );
   }
@@ -668,59 +668,64 @@ export default function ProfilePage() {
   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
 
   return (
-    <div className="min-h-screen bg-[#080808] text-zinc-100 p-4 md:p-10 font-sans selection:bg-yellow-500 selection:text-black">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#0a0a0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-950/20 via-[#0a0a0a] to-black text-zinc-100 p-4 md:p-10 font-sans selection:bg-yellow-400/30">
+      <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Уведомление */}
+        {/* Уведомление (тост) */}
         {promoNotice && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 animate-slide-down">
-            <div className="bg-yellow-500 text-black font-black py-4 px-6 rounded-none shadow-[8px_8px_0px_0px_rgba(255,215,0,0.2)] flex justify-between items-center border-2 border-black">
-              <span>{promoNotice}</span>
+          <div className="fixed top-6 right-6 z-50 animate-fade-in-down">
+            <div className="bg-zinc-900 border border-yellow-500/50 text-yellow-400 font-semibold px-6 py-3 rounded-full shadow-[0_0_30px_rgba(234,179,8,0.15)] flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+              </span>
+              {promoNotice}
             </div>
           </div>
         )}
 
-        {/* Профиль заголовок */}
-        <section className="bg-zinc-900 border-l-8 border-yellow-500 p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl transition-all hover:translate-x-1">
-          <div className="relative">
-            <div className="w-32 h-32 bg-zinc-800 border-2 border-yellow-500 overflow-hidden shadow-[5px_5px_0px_0px_#eab308]">
+        {/* Шапка профиля */}
+        <section className="relative overflow-hidden backdrop-blur-sm bg-zinc-900/60 border border-zinc-800 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl transition-all duration-300 hover:border-yellow-500/20">
+          <div className="relative group">
+            <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-yellow-500/20 ring-offset-4 ring-offset-[#0a0a0a] group-hover:ring-yellow-500/50 transition-all duration-500 shadow-xl">
               {avatarUrl ? (
-                <img src={avatarUrl} className="w-full h-full object-cover" />
+                <img src={avatarUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-5xl font-black text-yellow-500">
+                <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-5xl font-bold text-yellow-400">
                   {user.name?.[0]}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="text-center md:text-left">
-            <h1 className="text-4xl font-black uppercase tracking-tight italic text-white leading-none mb-2">
+          <div className="text-center md:text-left flex-1">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white mb-1">
               {user.name}
             </h1>
-            <p className="text-zinc-500 font-mono text-sm mb-4">{user.email}</p>
-            <div className="inline-block bg-yellow-500 text-black px-3 py-1 font-bold text-xs uppercase skew-x-[-12deg]">
-              Скидка: {discount}%
+            <p className="text-zinc-500 text-sm mb-4 font-medium">{user.email}</p>
+            <div className="inline-flex items-center gap-2.5 bg-yellow-400/10 border border-yellow-400/20 px-5 py-2 rounded-full shadow-inner">
+              <span className="text-yellow-400 text-xs font-bold uppercase tracking-wider">Скидка партнера:</span>
+              <span className="text-white text-base font-extrabold">{discount}%</span>
             </div>
           </div>
         </section>
 
-        {/* Сетка инструментов */}
+        {/* Сетка инфо-блоков */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Рефералка */}
-          <div className="bg-zinc-900/50 border border-zinc-800 p-6 transition-all hover:border-yellow-500/50 group">
-            <h2 className="text-yellow-500 text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-yellow-500"></span> Реферальная ссылка
+          <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-7 transition-all duration-300 hover:bg-zinc-900 hover:border-zinc-700 group shadow-lg hover:shadow-yellow-500/5">
+            <h2 className="text-yellow-400 text-sm font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
+              Network Link
             </h2>
-            <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 bg-black/40 border border-zinc-700/50 rounded-2xl p-1.5 focus-within:border-yellow-500/50 transition">
               <input
                 value={refLink}
                 readOnly
-                className="w-full bg-black border border-zinc-700 py-3 px-4 text-xs font-mono text-zinc-400 focus:outline-none"
+                className="flex-1 bg-transparent border-none py-2 px-3 text-xs font-mono text-zinc-300 focus:ring-0 focus:outline-none"
               />
               <button
                 onClick={() => navigator.clipboard.writeText(refLink)}
-                className="w-full bg-zinc-800 hover:bg-yellow-500 text-yellow-500 hover:text-black font-bold py-3 transition-colors uppercase text-sm"
+                className="bg-zinc-800 hover:bg-yellow-500 text-yellow-400 hover:text-black font-bold py-2.5 px-5 rounded-xl transition-colors text-xs active:scale-95"
               >
                 Копировать
               </button>
@@ -728,20 +733,20 @@ export default function ProfilePage() {
           </div>
 
           {/* Промокоды */}
-          <div className="bg-zinc-900/50 border border-zinc-800 p-6 transition-all hover:border-yellow-500/50 group">
-            <h2 className="text-yellow-500 text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-yellow-500"></span> Промокод
+          <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-7 transition-all duration-300 hover:bg-zinc-900 hover:border-zinc-700 group shadow-lg hover:shadow-yellow-500/5">
+            <h2 className="text-yellow-400 text-sm font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
+              Промокод
             </h2>
-            <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 bg-black/40 border border-zinc-700/50 rounded-2xl p-1.5 focus-within:border-yellow-500/50 transition">
               <input
                 value={promo}
                 onChange={(e) => setPromo(e.target.value)}
-                placeholder="ВВЕДИТЕ_КОД"
-                className="w-full bg-black border border-zinc-700 py-3 px-4 text-xs font-mono text-yellow-500 placeholder:text-zinc-800 focus:border-yellow-500 focus:outline-none transition"
+                placeholder="Ввести код..."
+                className="flex-1 bg-transparent border-none py-2 px-3 text-sm text-yellow-100 placeholder:text-zinc-600 focus:ring-0 focus:outline-none transition"
               />
               <button
                 onClick={applyPromo}
-                className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 transition-all uppercase text-sm shadow-[0_4px_0_0_#854d0e] active:shadow-none active:translate-y-1"
+                className="bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold py-2.5 px-6 rounded-xl transition-all text-xs active:scale-95 shadow-lg shadow-yellow-950/30"
               >
                 Активировать
               </button>
@@ -750,14 +755,14 @@ export default function ProfilePage() {
         </div>
 
         {/* Загрузка аватара */}
-        <div className="bg-zinc-900 border-2 border-zinc-800 p-8 flex flex-col items-center gap-6">
-          <div className="w-full text-left">
-            <h2 className="text-white text-lg font-bold uppercase italic">Обновить аватар</h2>
-            <p className="text-zinc-500 text-xs">Выберите файл для синхронизации профиля</p>
+        <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-8 flex flex-col items-center gap-7 transition-all duration-300 hover:border-zinc-700 shadow-lg">
+          <div className="w-full text-center md:text-left">
+            <h2 className="text-white text-xl font-bold">Сменить изображение профиля</h2>
+            <p className="text-zinc-500 text-sm">Рекомендуемый размер 512x512px, до 2MB</p>
           </div>
 
-          <div className="w-full flex flex-col items-center gap-4">
-             <label className="w-full">
+          <div className="w-full flex flex-col md:flex-row items-center gap-6">
+             <label className="flex-1 w-full cursor-pointer">
                 <input
                     type="file"
                     accept="image/*"
@@ -771,26 +776,30 @@ export default function ProfilePage() {
                         r.readAsDataURL(f);
                     }}
                 />
-                <div className="w-full bg-black border-2 border-dashed border-zinc-700 hover:border-yellow-500 py-6 px-4 rounded-lg text-center cursor-pointer transition">
-                    <span className="text-zinc-500 text-xs font-bold uppercase">
-                        {file ? file.name : "Кликните для выбора изображения"}
+                <div className="w-full bg-black/30 border-2 border-dashed border-zinc-700/70 hover:border-yellow-500/50 py-10 px-6 rounded-2xl text-center transition duration-300 group">
+                    <span className="text-zinc-500 text-sm font-medium group-hover:text-zinc-300 transition">
+                        {file ? file.name : "Выбрать файл на устройстве"}
                     </span>
                 </div>
              </label>
 
-            {preview && (
-              <div className="p-1 bg-yellow-500">
-                 <img src={preview} className="w-20 h-20 object-cover" />
-              </div>
-            )}
+            <div className="flex flex-col items-center gap-4 w-full md:w-auto">
+                {preview ? (
+                  <div className="p-1 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-xl">
+                     <img src={preview} className="w-24 h-24 object-cover rounded-full" />
+                  </div>
+                ) : (
+                    <div className="w-24 h-24 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-600 text-xs">Нет превью</div>
+                )}
 
-            <button
-              onClick={uploadAvatar}
-              disabled={!file}
-              className="w-full max-w-xs bg-white hover:bg-yellow-500 text-black font-black uppercase py-4 transition-all disabled:opacity-10"
-            >
-              Сохранить изменения
-            </button>
+                <button
+                  onClick={uploadAvatar}
+                  disabled={!file}
+                  className="w-full md:w-auto whitespace-nowrap bg-white hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-full transition-all disabled:opacity-20 disabled:cursor-not-allowed text-sm active:scale-95 shadow-lg"
+                >
+                  Применить
+                </button>
+            </div>
           </div>
         </div>
 
