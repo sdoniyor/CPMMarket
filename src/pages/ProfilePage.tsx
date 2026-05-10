@@ -560,19 +560,16 @@
 
 
 
-
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
   Copy,
   Zap,
   Camera,
-  Check,
   Share2,
   LogOut,
   Gift,
-  Send,
 } from "lucide-react";
 
 const API = "https://cpmmarker.onrender.com";
@@ -602,21 +599,13 @@ export default function ProfilePage() {
   const [promo, setPromo] = useState("");
   const [discount, setDiscount] = useState(0);
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+ 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const getToken = () => localStorage.getItem("token");
-
   /* ================= LOAD DATA ================= */
-  const loadUser = useCallback(async () => {
+  const loadUser = async () => {
     try {
-      setLoading(true);
-      setLoadError(false);
-
-      const token = getToken();
+      const token = localStorage.getItem("token");
 
       if (!token) {
         window.location.href = "/auth";
@@ -624,162 +613,109 @@ export default function ProfilePage() {
       }
 
       const res = await fetch(`${API}/api/profile/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      // только тут разлогин
       if (res.status === 401 || res.status === 403) {
         localStorage.removeItem("token");
         window.location.href = "/auth";
         return;
       }
 
-      // сервер недоступен / ошибка API
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-
       const data = await res.json();
 
-      if (!data?.id) {
-        throw new Error("Invalid user payload");
-      }
+      if (!data?.id) return;
 
       setUser(data);
       setDiscount(data?.active_promo?.rules?.discount ?? 0);
     } catch (e) {
-      console.log("loadUser error:", e);
-      setLoadError(true);
-      setPromoNotice("Server unavailable, try again");
-      setTimeout(() => setPromoNotice(null), 3000);
-    } finally {
-      setLoading(false);
+      console.log(e);
     }
-  }, []);
+  };
 
   useEffect(() => {
     loadUser();
-  }, [loadUser]);
+  }, []);
 
-  /* ================= AVATAR LOGIC ================= */
+  /* ================= AVATAR ================= */
   const uploadAvatar = async () => {
-    if (!file) {
-      alert("Выбери фото");
+    if (!file) return alert("Выбери фото");
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const form = new FormData();
+    form.append("avatar", file);
+
+    const res = await fetch(`${API}/api/profile/upload-avatar`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem("token");
+      window.location.href = "/auth";
       return;
     }
 
-    try {
-      const token = getToken();
-      if (!token) return;
+    const data = await res.json();
 
-      const form = new FormData();
-      form.append("avatar", file);
+    if (data?.success) {
+      setUser(data.user);
+      setFile(null);
+      setPreview(null);
 
-      const res = await fetch(`${API}/api/profile/upload-avatar`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: form,
-      });
-
-      if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem("token");
-        window.location.href = "/auth";
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data?.success) {
-        setUser(data.user);
-        setFile(null);
-        setPreview(null);
-
-        setPromoNotice("Profile updated!");
-        setTimeout(() => setPromoNotice(null), 3000);
-      } else {
-        alert(data?.error || "Upload error");
-      }
-    } catch (e) {
-      console.log("uploadAvatar error:", e);
-      alert("Upload error");
+      setPromoNotice("Profile updated!");
+      setTimeout(() => setPromoNotice(null), 3000);
+    } else {
+      alert(data?.error || "Upload error");
     }
   };
 
-  /* ================= PROMO LOGIC ================= */
+  /* ================= PROMO ================= */
   const applyPromo = async () => {
-    if (!promo.trim()) {
-      alert("Введите промокод");
+    if (!promo.trim()) return alert("Введите промокод");
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const res = await fetch(`${API}/api/promo/redeem`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ code: promo }),
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem("token");
+      window.location.href = "/auth";
       return;
     }
 
-    try {
-      const token = getToken();
-      if (!token) return;
+    const data = await res.json();
 
-      const res = await fetch(`${API}/api/promo/redeem`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          code: promo,
-        }),
-      });
+    if (data?.success) {
+      setPromo("");
+      loadUser();
 
-      if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem("token");
-        window.location.href = "/auth";
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data?.success) {
-        setPromo("");
-        await loadUser();
-
-        setPromoNotice(`🎉 Activated! -${data.discount || 0}%`);
-        setTimeout(() => setPromoNotice(null), 3000);
-      } else {
-        alert(data?.error || "Invalid promo");
-      }
-    } catch (e) {
-      console.log("applyPromo error:", e);
-      alert("Promo error");
+      setPromoNotice(`🎉 Activated! -${data.discount || 0}%`);
+      setTimeout(() => setPromoNotice(null), 3000);
+    } else {
+      alert(data?.error || "Invalid promo");
     }
   };
 
-  /* ================= STATES ================= */
-  if (loading) {
+  if (!user)
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#08090a] text-yellow-400 font-black italic tracking-widest">
         LOADING...
       </div>
     );
-  }
 
-  if (!user && loadError) {
-    return (
-      <div className="min-h-screen flex flex-col gap-6 items-center justify-center bg-[#08090a] text-yellow-400 font-black italic tracking-widest">
-        <span>SERVER OFFLINE</span>
-
-        <button
-          onClick={loadUser}
-          className="px-6 py-3 rounded-xl bg-yellow-400 text-black"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (!user) return null;
-
+  /* FIX AVATAR URL */
   const avatarUrl =
     preview ||
     (user.avatar
@@ -788,28 +724,166 @@ export default function ProfilePage() {
         : `${API}/${user.avatar.replace(/^\/+/, "")}`
       : null);
 
-  const refLink = user.ref_code
+  const refLink = user?.ref_code
     ? `${window.location.origin}/auth?ref=${user.ref_code}`
     : `${window.location.origin}/auth`;
 
   return (
     <div className="min-h-screen bg-[#08090a] text-white p-4 md:p-8 pb-24 font-sans selection:bg-yellow-400 selection:text-black">
       <div className="max-w-4xl mx-auto space-y-6">
+
+        {/* ALERT */}
         <AnimatePresence>
           {promoNotice && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-yellow-400 text-black px-6 py-4 rounded-2xl font-black italic uppercase text-center shadow-[0_0_20px_rgba(250,204,21,0.2)]"
+              className="bg-yellow-400 text-black px-6 py-4 rounded-2xl font-black italic uppercase text-center"
             >
               {promoNotice}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* дальше JSX у тебя остаётся без изменений */}
-        {/* оставил сокращённо, потому что вся визуальная часть уже рабочая */}
+        {/* HEADER */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-[#111214] border border-white/5 rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-80 h-80 bg-yellow-400/5 blur-[120px]" />
+
+          <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+
+            {/* AVATAR */}
+            <div className="relative">
+              <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2.5rem] overflow-hidden bg-white/5 border-2 border-white/10 p-1">
+                {avatarUrl ? (
+                  <img src={avatarUrl} className="w-full h-full object-cover rounded-[2.3rem]" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-6xl font-black text-white/10">
+                    {user.name?.[0]}
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 bg-yellow-400 text-black p-4 rounded-2xl"
+              >
+                <Camera size={22} />
+              </button>
+
+              <input
+                type="file"
+                hidden
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+
+                  setFile(f);
+
+                  const r = new FileReader();
+                  r.onload = () => setPreview(r.result as string);
+                  r.readAsDataURL(f);
+                }}
+              />
+            </div>
+
+            {/* INFO */}
+            <div className="flex-1 space-y-3">
+              <h1 className="text-4xl md:text-6xl font-[1000] italic uppercase">
+                {user.name}
+              </h1>
+
+              <div className="flex gap-4 flex-wrap">
+                <span className="bg-white/5 px-3 py-1 rounded-full text-[10px]">
+                  <Mail size={12} /> {user.email || "No email"}
+                </span>
+
+                <span className="bg-yellow-400/10 px-3 py-1 rounded-full text-yellow-400 text-[10px]">
+                  <Zap size={12} /> {discount}%
+                </span>
+              </div>
+
+              {preview && (
+                <button
+                  onClick={uploadAvatar}
+                  className="bg-green-500 text-black px-6 py-2 rounded-xl font-black"
+                >
+                  Confirm Avatar
+                </button>
+              )}
+            </div>
+
+            {/* STATS */}
+            <div className="bg-white/5 p-4 rounded-2xl text-center">
+              <div className="text-xs text-white/40">REF</div>
+              <div className="text-3xl font-black">
+                {user.ref_count || 0}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* REF + PROMO */}
+        <div className="grid md:grid-cols-2 gap-6">
+
+          <div className="bg-[#111214] p-6 rounded-[2.5rem]">
+            <div className="text-yellow-400 mb-3 flex items-center gap-2">
+              <Share2 /> Referral
+            </div>
+
+            <input
+              value={refLink}
+              readOnly
+              className="w-full bg-black/40 p-3 rounded-xl text-xs"
+            />
+
+            <button
+              onClick={() => navigator.clipboard.writeText(refLink)}
+              className="mt-3 bg-white/5 px-3 py-2 rounded-xl"
+            >
+              <Copy size={16} />
+            </button>
+          </div>
+
+          <div className="bg-[#111214] p-6 rounded-[2.5rem]">
+            <div className="text-yellow-400 mb-3 flex items-center gap-2">
+              <Gift /> Promo
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                value={promo}
+                onChange={(e) => setPromo(e.target.value)}
+                className="flex-1 bg-black/40 p-3 rounded-xl text-xs"
+              />
+              <button
+                onClick={applyPromo}
+                className="bg-yellow-400 text-black px-4 rounded-xl"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        {/* LOGOUT */}
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            window.location.href = "/auth";
+          }}
+          className="w-full mt-6 text-red-400"
+        >
+          <LogOut /> Logout
+        </button>
+
       </div>
     </div>
   );
