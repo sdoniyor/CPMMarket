@@ -573,7 +573,6 @@ type User = {
   ref_count?: number;
   telegram_username?: string;
   telegram_id?: string;
-
   active_promo?: {
     promo_code: string;
     rules: {
@@ -597,14 +596,11 @@ export default function ProfilePage() {
     const res = await fetch(`${API}/profile/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-
     const data = await res.json();
-
     if (!data?.id) {
       window.location.href = "/auth";
       return;
     }
-
     setUser(data);
     setDiscount(data?.active_promo?.rules?.discount ?? 0);
   };
@@ -615,18 +611,14 @@ export default function ProfilePage() {
 
   const uploadAvatar = async () => {
     if (!file) return;
-
     const form = new FormData();
     form.append("avatar", file);
-
     const res = await fetch(`${API}/profile/upload-avatar`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: form,
     });
-
     const data = await res.json();
-
     if (data?.success) {
       setUser(data.user);
       setPreview(null);
@@ -643,29 +635,24 @@ export default function ProfilePage() {
       },
       body: JSON.stringify({ code: promo }),
     });
-
     const data = await res.json();
-
     if (data?.success) {
-      setPromoNotice(`+${data.discount}% activated`);
+      setPromoNotice(`Success! +${data.discount}% activated`);
       setPromo("");
-
       const r = await fetch(`${API}/profile/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const u = await r.json();
       setUser(u);
       setDiscount(u?.active_promo?.rules?.discount ?? 0);
-
       setTimeout(() => setPromoNotice(null), 2500);
     }
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#05060a] text-cyan-300">
-        Loading...
+      <div className="min-h-screen flex items-center justify-center bg-[#030407] text-cyan-400 font-mono tracking-widest animate-pulse">
+        INITIALIZING_SESSION...
       </div>
     );
   }
@@ -681,122 +668,126 @@ export default function ProfilePage() {
   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#05060a] via-[#070b14] to-[#05060a] text-white p-6 font-sans">
-
-      <div className="max-w-5xl mx-auto space-y-6">
-
-        {/* NOTIFY */}
+    <div className="min-h-screen bg-[#030407] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-[#030407] to-black text-slate-200 p-4 md:p-10 selection:bg-cyan-500/30">
+      <div className="max-w-4xl mx-auto space-y-8">
+        
+        {/* TOAST NOTIFICATION */}
         {promoNotice && (
-          <div className="backdrop-blur-xl bg-white/5 border border-cyan-400/20 text-cyan-300 px-6 py-3 rounded-2xl shadow-[0_0_30px_rgba(34,211,238,0.15)]">
-            {promoNotice}
+          <div className="fixed top-6 right-6 z-50 animate-bounce">
+            <div className="bg-cyan-500 text-black font-bold px-6 py-3 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+              {promoNotice}
+            </div>
           </div>
         )}
 
-        {/* PROFILE CARD */}
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6 hover:border-cyan-400/30 transition">
-
-          <div className="w-28 h-28 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
-            {avatarUrl ? (
-              <img src={avatarUrl} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl text-cyan-300">
-                {user.name?.[0]}
-              </div>
-            )}
+        {/* HEADER / PROFILE CARD */}
+        <section className="relative overflow-hidden backdrop-blur-md bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-8 group transition-all duration-500 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.05)]">
+          <div className="relative group/avatar">
+            <div className="w-32 h-32 rounded-3xl overflow-hidden ring-2 ring-white/10 ring-offset-4 ring-offset-[#030407] group-hover/avatar:ring-cyan-500/50 transition-all duration-500 shadow-2xl">
+              {avatarUrl ? (
+                <img src={avatarUrl} className="w-full h-full object-cover transition duration-700 group-hover/avatar:scale-110" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-cyan-900/40 to-slate-800 flex items-center justify-center text-5xl font-bold text-cyan-400">
+                  {user.name?.[0]}
+                </div>
+              )}
+            </div>
+            <div className="absolute -bottom-2 -right-2 bg-cyan-500 w-6 h-6 rounded-full border-4 border-[#030407]"></div>
           </div>
 
-          <div>
-            <h1 className="text-3xl font-semibold tracking-wide">{user.name}</h1>
-            <p className="text-white/40 text-sm">{user.email}</p>
-            <p className="text-cyan-300 text-sm mt-1">
-              Discount: {discount}%
-            </p>
+          <div className="text-center md:text-left space-y-2">
+            <h1 className="text-4xl font-black tracking-tight text-white uppercase italic">
+              {user.name}
+            </h1>
+            <p className="text-slate-500 font-mono text-sm tracking-tighter uppercase">{user.email}</p>
+            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 px-4 py-1 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              <span className="text-cyan-400 text-xs font-bold tracking-widest">LOYALTY: {discount}% OFF</span>
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* GRID */}
         <div className="grid md:grid-cols-2 gap-6">
-
-          {/* REF */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:border-violet-400/30 transition">
-
-            <h2 className="text-violet-300 font-medium mb-3">
-              Referral link
-            </h2>
-
-            <div className="flex gap-2">
+          {/* REFERRAL BOX */}
+          <div className="backdrop-blur-sm bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-6 hover:bg-white/[0.04] transition-all group">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 group-hover:text-violet-400 transition">Network Link</label>
+            <div className="relative flex items-center">
               <input
                 value={refLink}
                 readOnly
-                className="flex-1 bg-black/30 border border-white/10 rounded-xl p-3 text-sm text-white/60"
+                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-4 pr-24 text-xs font-mono text-cyan-100 focus:outline-none focus:border-violet-500/50 transition"
               />
-
               <button
                 onClick={() => navigator.clipboard.writeText(refLink)}
-                className="bg-violet-500/20 border border-violet-400/30 px-4 rounded-xl text-violet-200"
+                className="absolute right-1 bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-transform active:scale-95"
               >
                 Copy
               </button>
             </div>
           </div>
 
-          {/* PROMO */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:border-yellow-400/30 transition">
-
-            <h2 className="text-yellow-300 font-medium mb-3">
-              Promo code
-            </h2>
-
-            <div className="flex gap-2">
+          {/* PROMO BOX */}
+          <div className="backdrop-blur-sm bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-6 hover:bg-white/[0.04] transition-all group">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 group-hover:text-yellow-400 transition">Access Code</label>
+            <div className="relative flex items-center">
               <input
                 value={promo}
                 onChange={(e) => setPromo(e.target.value)}
-                className="flex-1 bg-black/30 border border-white/10 rounded-xl p-3 text-sm"
+                placeholder="ENTER_CODE..."
+                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-4 pr-24 text-xs font-mono text-yellow-100 placeholder:text-white/10 focus:outline-none focus:border-yellow-500/50 transition"
               />
-
               <button
                 onClick={applyPromo}
-                className="bg-yellow-400/20 border border-yellow-400/40 px-4 rounded-xl text-yellow-200"
+                className="absolute right-1 bg-yellow-500 hover:bg-yellow-400 text-black text-[10px] font-bold uppercase px-4 py-2 rounded-lg transition-transform active:scale-95"
               >
                 Apply
               </button>
             </div>
           </div>
-
         </div>
 
-        {/* UPLOAD */}
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:border-cyan-400/30 transition">
+        {/* AVATAR UPLOAD SECTION */}
+        <div className="backdrop-blur-sm bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-8 flex flex-col items-center gap-6 border-dashed hover:border-cyan-500/30 transition group">
+          <div className="text-center">
+            <h3 className="text-sm font-bold uppercase tracking-[0.3em] text-white/60 mb-2">Identity Update</h3>
+            <p className="text-xs text-slate-500">Supported formats: JPG, PNG, WEBP (Max 2MB)</p>
+          </div>
 
-          <h2 className="text-cyan-300 mb-3">Avatar</h2>
+          <div className="flex flex-col items-center w-full max-w-xs gap-4">
+             <label className="w-full cursor-pointer">
+                <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        setFile(f);
+                        const r = new FileReader();
+                        r.onload = () => setPreview(r.result as string);
+                        r.readAsDataURL(f);
+                    }}
+                />
+                <div className="bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10 py-3 px-6 rounded-xl text-center text-xs font-bold uppercase tracking-widest transition duration-300">
+                    {file ? file.name : "Select File"}
+                </div>
+             </label>
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-              setFile(f);
+            {preview && (
+              <div className="relative group/preview">
+                 <img src={preview} className="w-24 h-24 rounded-2xl object-cover ring-2 ring-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-in zoom-in-75 duration-300" />
+                 <div className="absolute inset-0 bg-cyan-500/20 rounded-2xl animate-pulse"></div>
+              </div>
+            )}
 
-              const r = new FileReader();
-              r.onload = () => setPreview(r.result as string);
-              r.readAsDataURL(f);
-            }}
-          />
-
-          {preview && (
-            <img
-              src={preview}
-              className="w-20 h-20 mt-3 rounded-xl border border-white/10"
-            />
-          )}
-
-          <button
-            onClick={uploadAvatar}
-            className="mt-3 bg-cyan-500/20 border border-cyan-400/30 px-6 py-2 rounded-xl text-cyan-200"
-          >
-            Save avatar
-          </button>
+            <button
+              onClick={uploadAvatar}
+              disabled={!file}
+              className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-20 disabled:cursor-not-allowed text-white text-xs font-black uppercase py-4 rounded-xl shadow-lg shadow-cyan-900/20 transition-all duration-300"
+            >
+              Sync Identity
+            </button>
+          </div>
         </div>
 
       </div>
