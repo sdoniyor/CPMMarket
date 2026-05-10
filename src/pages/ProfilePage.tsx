@@ -668,12 +668,13 @@ export default function ProfilePage() {
   const refLink = `${window.location.origin}/auth?ref=${user.ref_code}`;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-950/20 via-[#0a0a0a] to-black text-zinc-100 p-4 md:p-10 font-sans selection:bg-yellow-400/30">
+    // Добавлен pt-24 (padding-top), чтобы контент опустился ниже навбара
+    <div className="min-h-screen bg-[#0a0a0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-950/20 via-[#0a0a0a] to-black text-zinc-100 p-4 md:p-10 pt-24 md:pt-32 font-sans selection:bg-yellow-400/30">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Уведомление (тост) */}
         {promoNotice && (
-          <div className="fixed top-6 right-6 z-50 animate-fade-in-down">
+          <div className="fixed top-24 right-6 z-50 animate-fade-in-down">
             <div className="bg-zinc-900 border border-yellow-500/50 text-yellow-400 font-semibold px-6 py-3 rounded-full shadow-[0_0_30px_rgba(234,179,8,0.15)] flex items-center gap-2">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
@@ -704,7 +705,7 @@ export default function ProfilePage() {
             </h1>
             <p className="text-zinc-500 text-sm mb-4 font-medium">{user.email}</p>
             <div className="inline-flex items-center gap-2.5 bg-yellow-400/10 border border-yellow-400/20 px-5 py-2 rounded-full shadow-inner">
-              <span className="text-yellow-400 text-xs font-bold uppercase tracking-wider">Скидка партнера:</span>
+              <span className="text-yellow-400 text-xs font-bold uppercase tracking-wider text-[10px] md:text-xs">СКИДКА ПАРТНЕРА:</span>
               <span className="text-white text-base font-extrabold">{discount}%</span>
             </div>
           </div>
@@ -721,7 +722,7 @@ export default function ProfilePage() {
               <input
                 value={refLink}
                 readOnly
-                className="flex-1 bg-transparent border-none py-2 px-3 text-xs font-mono text-zinc-300 focus:ring-0 focus:outline-none"
+                className="flex-1 bg-transparent border-none py-2 px-3 text-[10px] md:text-xs font-mono text-zinc-300 focus:ring-0 focus:outline-none"
               />
               <button
                 onClick={() => navigator.clipboard.writeText(refLink)}
