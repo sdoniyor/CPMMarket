@@ -7,16 +7,17 @@ declare global {
   }
 }
 
-export default function CrispChat(): null {
+export default function CrispChat() {
   useEffect(() => {
     window.$crisp = [];
-    window.CRISP_WEBSITE_ID = "cfd69891-8d8e-4a7b-8531-c5283de127d4";
+    window.CRISP_WEBSITE_ID = "9a9f36b8-5de5-4614-934c-abf8b9ff226f";
 
     const script = document.createElement("script");
+
     script.src = "https://client.crisp.chat/l.js";
     script.async = true;
 
-    document.head.appendChild(script);
+    document.body.appendChild(script);
   }, []);
 
   return null;
