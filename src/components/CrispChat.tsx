@@ -12,15 +12,11 @@ export default function CrispChat(): null {
     window.$crisp = [];
     window.CRISP_WEBSITE_ID = "cfd69891-8d8e-4a7b-8531-c5283de127d4";
 
-    (function () {
-      const d = document;
-      const s = d.createElement("script");
+    const script = document.createElement("script");
+    script.src = "https://client.crisp.chat/l.js";
+    script.async = true;
 
-      s.src = "https://client.crisp.chat/l.js";
-      s.async = true;
-
-      d.head.appendChild(s);
-    })();
+    document.head.appendChild(script);
   }, []);
 
   return null;
