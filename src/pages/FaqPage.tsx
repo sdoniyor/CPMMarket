@@ -61,183 +61,82 @@
 // }
 
 
+
+
 import { useState } from "react";
 
-type FAQItem = {
-  question: string;
-  answer: string;
-};
-
-const faqData: FAQItem[] = [
+const faqData = [
   {
-    question: "🏎️ Как купить машину?",
-    answer: "Выберите понравившуюся модель в каталоге, напишите в нашу поддержку или откройте чат. Укажите название авто, и наш менеджер поможет оформить сделку!",
+    question: "Как купить машину?",
+    answer: "Напишите в поддержку или откройте чат и укажите название машины 🚗",
   },
   {
-    question: "⚡ Сколько занимает доставка?",
-    answer: "Мы работаем на максимальных скоростях! Обычно машина оказывается в вашем гараже в течение 1–5 минут после подтверждения оплаты.",
+    question: "Сколько занимает доставка?",
+    answer: "Обычно 1–5 минут после оплаты ⚡",
   },
   {
-    question: "💳 Какие способы оплаты доступны?",
-    answer: "Мы принимаем карты всех популярных банков, электронные кошельки и криптовалюту. Все детали — в личном чате с оператором.",
+    question: "Какие способы оплаты?",
+    answer: "Все популярные способы. Уточните в чате 💬",
   },
   {
-    question: "🛡️ Есть ли гарантия на покупку?",
-    answer: "Безусловно! Мы дорожим репутацией. Если возникнет техническая заминка, мы решим её моментально или вернем средства.",
-  },
-  {
-    question: "🔧 Можно ли заказать кастомный тюнинг?",
-    answer: "Да, мы делаем эксклюзивные винилы и настройки подвески. Просто приложите скриншот или описание желаемого дизайна.",
+    question: "Есть ли гарантия?",
+    answer: "Да, если проблема — мы решаем её сразу 👍",
   },
 ];
 
 export default function FaqPage() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <div style={styles.container}>
-      {/* Background Decor */}
-      <div style={styles.glow} />
+    <div className="min-h-screen bg-black text-white px-4 py-10 flex justify-center">
+      
+      <div className="w-full max-w-3xl">
 
-      <header style={styles.header}>
-        <h1 style={styles.title}>CAR PARKING <span style={styles.accent}>FAQ</span></h1>
-        <p style={styles.subtitle}>Все, что нужно знать перед выездом на трассу</p>
-      </header>
+        {/* HEADER */}
+        <h1 className="text-3xl font-black text-center mb-2">
+          ❓ <span className="text-yellow-400">FAQ</span>
+        </h1>
 
-      <div style={styles.faqList}>
-        {faqData.map((item, index) => (
-          <div
-            key={index}
-            style={{
-              ...styles.card,
-              borderColor: openIndex === index ? "#00ff88" : "rgba(255,255,255,0.1)",
-              background: openIndex === index ? "rgba(0, 255, 136, 0.05)" : "rgba(255,255,255,0.03)",
-            }}
-            onClick={() => setOpenIndex(openIndex === index ? null : index)}
-          >
-            <div style={styles.questionRow}>
-              <h3 style={{
-                ...styles.question,
-                color: openIndex === index ? "#00ff88" : "#fff"
-              }}>
-                {item.question}
-              </h3>
-              <span style={{
-                ...styles.icon,
-                transform: openIndex === index ? "rotate(180deg)" : "rotate(0deg)"
-              }}>
-                ▼
-              </span>
+        <p className="text-center text-white/40 mb-8">
+          Часто задаваемые вопросы о магазине машин
+        </p>
+
+        {/* LIST */}
+        <div className="space-y-3">
+          {faqData.map((item, i) => (
+            <div
+              key={i}
+              onClick={() => setOpen(open === i ? null : i)}
+              className="cursor-pointer border border-white/10 bg-white/5 hover:bg-white/10 transition-all rounded-2xl p-4"
+            >
+              
+              {/* QUESTION */}
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-white">
+                  <span className="text-yellow-400">Q:</span> {item.question}
+                </h3>
+
+                <span className="text-yellow-400 text-xl">
+                  {open === i ? "−" : "+"}
+                </span>
+              </div>
+
+              {/* ANSWER */}
+              {open === i && (
+                <p className="mt-3 text-white/70 text-sm border-t border-white/10 pt-3">
+                  {item.answer}
+                </p>
+              )}
             </div>
+          ))}
+        </div>
 
-            <div style={{
-              ...styles.answerContainer,
-              maxHeight: openIndex === index ? "200px" : "0px",
-              opacity: openIndex === index ? 1 : 0,
-            }}>
-              <p style={styles.answer}>{item.answer}</p>
-            </div>
-          </div>
-        ))}
+        {/* FOOTER BLOCK */}
+        <div className="mt-10 text-center text-white/40 text-sm">
+          Не нашли ответ? Напишите в чат поддержки 💬
+        </div>
+
       </div>
-
-      <footer style={styles.footer}>
-        Остались вопросы? <span style={styles.link}>Свяжитесь с техподдержкой</span>
-      </footer>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    backgroundColor: "#0a0a0b",
-    color: "#ffffff",
-    minHeight: "100vh",
-    padding: "40px 20px",
-    fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    position: "relative",
-    overflow: "hidden",
-  },
-  glow: {
-    position: "absolute",
-    top: "-10%",
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "600px",
-    height: "300px",
-    background: "radial-gradient(circle, rgba(0,255,136,0.15) 0%, rgba(0,0,0,0) 70%)",
-    pointerEvents: "none",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "50px",
-  },
-  title: {
-    fontSize: "2.5rem",
-    fontWeight: 900,
-    letterSpacing: "2px",
-    margin: "0 0 10px 0",
-    textShadow: "0 0 20px rgba(0,255,136,0.3)",
-  },
-  accent: {
-    color: "#00ff88",
-  },
-  subtitle: {
-    color: "#888",
-    fontSize: "1.1rem",
-  },
-  faqList: {
-    maxWidth: "700px",
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  },
-  card: {
-    border: "1px solid",
-    borderRadius: "16px",
-    padding: "20px",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-    backdropFilter: "blur(10px)",
-  },
-  questionRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  question: {
-    margin: 0,
-    fontSize: "1.2rem",
-    fontWeight: 600,
-    transition: "color 0.3s ease",
-  },
-  icon: {
-    fontSize: "0.8rem",
-    transition: "transform 0.3s ease",
-    color: "#555",
-  },
-  answerContainer: {
-    overflow: "hidden",
-    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-  answer: {
-    marginTop: "15px",
-    lineHeight: "1.6",
-    color: "#ccc",
-    fontSize: "1rem",
-    borderTop: "1px solid rgba(255,255,255,0.05)",
-    paddingTop: "15px",
-  },
-  footer: {
-    textAlign: "center",
-    marginTop: "50px",
-    color: "#555",
-    fontSize: "0.9rem",
-  },
-  link: {
-    color: "#00ff88",
-    textDecoration: "underline",
-    cursor: "pointer",
-  }
-};
