@@ -448,7 +448,7 @@ export default function AdminPromos() {
                   <input
                     placeholder="E.g. SUMMER2024"
                     value={form.code}
-                    onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                    onChange={(e) => setForm({ ...form, code: e.target.value })}
                     className="w-full p-4 bg-zinc-900 border border-white/5 rounded-2xl text-white font-mono focus:border-yellow-500/50 outline-none transition-all"
                   />
                 </div>
