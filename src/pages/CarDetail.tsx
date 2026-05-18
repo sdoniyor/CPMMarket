@@ -459,7 +459,7 @@ export default function CarDetail() {
             </div>
 
             <div className="text-yellow-400 font-bold mt-2">
-              +${i.price.toLocaleString()}
+              +{i.price.toLocaleString()}
             </div>
 
             {selected?.id === i.id && (
@@ -513,7 +513,7 @@ export default function CarDetail() {
 
                 <div className="text-right">
                   <div className="text-yellow-400 text-4xl font-[900] italic leading-none">
-                    ${totalPrice.toLocaleString()}
+                    {totalPrice.toLocaleString()}
                   </div>
 
                   <button
