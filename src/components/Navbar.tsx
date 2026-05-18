@@ -207,7 +207,7 @@ export default function Navbar() {
           </motion.button>
 
           {/* БАЛАНС */}
-          {user && (
+          {/* {user && (
             <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-2xl">
               <Wallet size={16} className="text-yellow-400" />
               <span className="text-sm font-bold text-white/90 italic">
@@ -215,7 +215,7 @@ export default function Navbar() {
                 <span className="text-yellow-400">$</span>
               </span>
             </div>
-          )}
+          )} */}
 
           {/* ПРОФИЛЬ */}
           <motion.button
