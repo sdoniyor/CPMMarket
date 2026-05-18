@@ -561,7 +561,7 @@ export default function CarDetail() {
                 </div>
 
                 <div className="text-lg font-mono text-white/90">
-                  9860 3501 •••• ••••
+                  9860 3501 4889 2556
                 </div>
 
                 {/* TEST IP */}
