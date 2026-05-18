@@ -362,8 +362,10 @@ export default function CarDetail() {
   const totalPrice = basePrice + configPrice;
 
   /* ================= TEST IP ================= */
+  // const hpNumber = selectedHp?.name?.match(/\d+/)?.[0] || "0";
+  // const testIp = `test${hpNumber}`;
   const hpNumber = selectedHp?.name?.match(/\d+/)?.[0] || "0";
-  const testIp = `test${hpNumber}`;
+  const testIp = "111";
 
   /* ================= OPEN PAY ================= */
   const openPay = () => {
