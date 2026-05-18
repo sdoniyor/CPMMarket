@@ -315,12 +315,12 @@ const CarCard = React.memo(
             <div className="flex flex-col">
               {hasDiscount && (
                 <span className="text-white/20 line-through text-[10px] font-bold tracking-widest leading-none mb-1">
-                  ${car.price.toLocaleString()}
+                  {car.price.toLocaleString()}
                 </span>
               )}
 
               <span className="text-3xl font-[900] text-yellow-400 tracking-tighter leading-none italic">
-                ${currentPrice.toLocaleString()}
+                {currentPrice.toLocaleString()}
               </span>
             </div>
 
