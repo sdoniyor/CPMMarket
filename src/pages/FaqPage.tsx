@@ -77,13 +77,8 @@
 //   );
 // }
 
-
 import { useState } from "react";
-// Если используешь Next.js, раскомментируй строку ниже:
-// import { useRouter } from "next/navigation";
-
-// Если используешь React Router (Vite/CRA), раскомментируй строку ниже:
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const faqData = [
   {
@@ -106,24 +101,17 @@ const faqData = [
 
 export default function FaqPage() {
   const [open, setOpen] = useState<number | null>(null);
-  
-  // Инициализация роутеров (раскомментируй нужный при необходимости)
-  // const router = useRouter(); // для Next.js
-  // const navigate = useNavigate(); // для React Router
+
+  const navigate = useNavigate();
 
   const handleBackToMarket = () => {
-    // Логика перехода:
-    // router.push("/market"); // для Next.js
-    // navigate("/market"); // для React Router
-    
-    // Временная заглушка, если роутер еще не настроен:
-    console.log("Переход на страницу маркета");
+    navigate("/market");
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-4 py-10 flex justify-center elements-center font-sans">
+    <div className="min-h-screen bg-black text-white px-4 py-10 flex justify-center items-center font-sans">
       <div className="w-full max-w-3xl relative">
-        
+
         {/* КНОПКА НАЗАД В МАРКЕТ */}
         <div className="mb-8 flex justify-start">
           <button
@@ -142,6 +130,7 @@ export default function FaqPage() {
           <h1 className="text-4xl font-black mb-2 tracking-tight">
             ❓ <span className="text-yellow-400">FAQ</span>
           </h1>
+
           <p className="text-white/40 text-base">
             Часто задаваемые вопросы о магазине машин
           </p>
@@ -151,6 +140,7 @@ export default function FaqPage() {
         <div className="space-y-3">
           {faqData.map((item, i) => {
             const isOpen = open === i;
+
             return (
               <div
                 key={i}
@@ -164,9 +154,11 @@ export default function FaqPage() {
                 {/* QUESTION */}
                 <div className="flex justify-between items-center gap-4">
                   <h3 className="font-bold text-white text-base sm:text-lg flex items-start gap-2">
-                    <span className="text-yellow-400 shrink-0">Q:</span> 
+                    <span className="text-yellow-400 shrink-0">Q:</span>
+
                     <span>{item.question}</span>
                   </h3>
+
                   <span className="text-yellow-400 text-2xl font-light shrink-0 min-w-[24px] text-center">
                     {isOpen ? "−" : "+"}
                   </span>
@@ -183,7 +175,7 @@ export default function FaqPage() {
           })}
         </div>
 
-        {/* FOOTER BLOCK */}
+        {/* FOOTER */}
         <footer className="mt-12 text-center text-white/40 text-sm">
           Не нашли ответ? Напишите в чат поддержки 💬
         </footer>
