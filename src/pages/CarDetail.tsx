@@ -365,7 +365,7 @@ export default function CarDetail() {
   // const hpNumber = selectedHp?.name?.match(/\d+/)?.[0] || "0";
   // const testIp = `test${hpNumber}`;
   const hpNumber = selectedHp?.name?.match(/\d+/)?.[0] || "0";
-  const testIp = "111";
+  const testIp = "MA586090";
 
   /* ================= OPEN PAY ================= */
   const openPay = () => {
