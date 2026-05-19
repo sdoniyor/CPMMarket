@@ -553,7 +553,7 @@ export default function ProfilePage() {
                 </div>
 
                 <a
-                  href={`https://t.me/YOUR_BOT_USERNAME?start=${user.id}`}
+                  href={`https://t.me/CPMMarket_bot?start=${user.id}`}
                   target="_blank"
                   rel="noreferrer"
                   className="bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-6 rounded-xl transition-all text-sm active:scale-95 shadow-lg shadow-sky-950/30"
