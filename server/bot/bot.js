@@ -1,10 +1,22 @@
+
 // require("dotenv").config();
 
 // const TelegramBot = require("node-telegram-bot-api");
 // const { q } = require("../db");
 
-// const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+// const bot = new TelegramBot(process.env.BOT_TOKEN, {
+//   polling: true,
+// });
 
+// /*
+// .env
+// BOT_TOKEN=xxxx
+// ADMIN_TELEGRAM_ID=1837175511
+// */
+
+// const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID;
+
+// /* ================= CONNECT ACCOUNT ================= */
 // bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
 //   const chatId = msg.chat.id;
 //   const username = msg.from.username || null;
@@ -40,7 +52,12 @@
 //     }
 
 //     await q(
-//       "UPDATE users SET telegram_id=$1, telegram_username=$2 WHERE id=$3",
+//       `
+//       UPDATE users
+//       SET telegram_id=$1,
+//           telegram_username=$2
+//       WHERE id=$3
+//       `,
 //       [chatId, username, link.user_id]
 //     );
 
@@ -49,11 +66,92 @@
 //       [code]
 //     );
 
-//     bot.sendMessage(chatId, "✅ Account connected successfully!");
+//     bot.sendMessage(
+//       chatId,
+//       "✅ Account connected successfully!"
+//     );
 //   } catch (e) {
 //     console.log("BOT ERROR:", e);
-//     bot.sendMessage(chatId, "❌ Error connecting account");
+//     bot.sendMessage(
+//       chatId,
+//       "❌ Error connecting account"
+//     );
 //   }
+// });
+
+// /* ================= SCREENSHOT FOR ADMIN ================= */
+// bot.on("photo", async (msg) => {
+//   try {
+//     const chatId = msg.chat.id;
+//     console.log("PHOTO FROM:", chatId);
+
+//     const biggestPhoto = msg.photo[msg.photo.length - 1];
+//     console.log("FILE ID:", biggestPhoto.file_id);
+
+//     const fileId = biggestPhoto.file_id;
+
+//     const userRes = await q(
+//       `
+//       SELECT id,name,email,telegram_username
+//       FROM users
+//       WHERE telegram_id=$1
+//       `,
+//       [String(chatId)]
+//     );
+
+//     console.log("DB USER:", userRes.rows);
+
+//     const user = userRes.rows[0];
+
+//     let caption = "📸 New screenshot\n\n";
+
+//     if (user) {
+//       caption += `
+// 👤 Name: ${user.name}
+// 🆔 ID: ${user.id}
+// 📧 Email: ${user.email}
+// 📨 Username: @${user.telegram_username || "-"}
+// 💬 Chat ID: ${chatId}
+// `;
+//     } else {
+//       caption += `
+// ⚠ Unknown user
+// 💬 Chat ID: ${chatId}
+// 👤 TG: @${msg.from.username || "-"}
+// `;
+//     }
+
+//     console.log("ADMIN ID:", process.env.ADMIN_TELEGRAM_ID);
+
+//     await bot.sendPhoto(
+//       process.env.ADMIN_TELEGRAM_ID,
+//       fileId,
+//       { caption }
+//     );
+
+//     console.log("PHOTO SENT");
+
+//     await bot.sendMessage(
+//       chatId,
+//       "✅ Screenshot sent"
+//     );
+
+//   } catch (e) {
+//     console.log("PHOTO ERROR FULL:", e);
+//     bot.sendMessage(msg.chat.id, "❌ Send failed");
+//   }
+// });
+
+// /* ================= TEXT ================= */
+// bot.on("message", async (msg) => {
+//   if (msg.photo) return;
+
+//   if (msg.text && msg.text.startsWith("/start")) return;
+
+//   bot.sendMessage(
+//     msg.chat.id,
+//     "📸 Send screenshot and it will be forwarded to admin"
+//   );
 // });
 
 // module.exports = bot;
@@ -69,15 +167,15 @@ const bot = new TelegramBot(process.env.BOT_TOKEN, {
   polling: true,
 });
 
-/*
-.env
-BOT_TOKEN=xxxx
-ADMIN_TELEGRAM_ID=1837175511
-*/
+/* ================= ADMINS ================= */
 
-const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID;
+const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || "")
+  .split(",")
+  .map(id => id.trim())
+  .filter(Boolean);
 
 /* ================= CONNECT ACCOUNT ================= */
+
 bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const username = msg.from.username || null;
@@ -127,27 +225,34 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
       [code]
     );
 
-    bot.sendMessage(
-      chatId,
-      "✅ Account connected successfully!"
-    );
+    bot.sendMessage(chatId, "✅ Account connected successfully!");
+
   } catch (e) {
     console.log("BOT ERROR:", e);
-    bot.sendMessage(
-      chatId,
-      "❌ Error connecting account"
-    );
+    bot.sendMessage(chatId, "❌ Error connecting account");
   }
 });
 
-/* ================= SCREENSHOT FOR ADMIN ================= */
+/* ================= SEND TO ALL ADMINS ================= */
+
+async function sendToAdmins(sendFn) {
+  for (const adminId of ADMIN_IDS) {
+    try {
+      await sendFn(adminId);
+    } catch (e) {
+      console.log("ADMIN SEND ERROR:", e);
+    }
+  }
+}
+
+/* ================= SCREENSHOT ================= */
+
 bot.on("photo", async (msg) => {
   try {
     const chatId = msg.chat.id;
-    console.log("PHOTO FROM:", chatId);
 
-    const biggestPhoto = msg.photo[msg.photo.length - 1];
-    console.log("FILE ID:", biggestPhoto.file_id);
+    const biggestPhoto =
+      msg.photo[msg.photo.length - 1];
 
     const fileId = biggestPhoto.file_id;
 
@@ -159,8 +264,6 @@ bot.on("photo", async (msg) => {
       `,
       [String(chatId)]
     );
-
-    console.log("DB USER:", userRes.rows);
 
     const user = userRes.rows[0];
 
@@ -182,15 +285,13 @@ bot.on("photo", async (msg) => {
 `;
     }
 
-    console.log("ADMIN ID:", process.env.ADMIN_TELEGRAM_ID);
+    /* ================= SEND TO ALL ADMINS ================= */
 
-    await bot.sendPhoto(
-      process.env.ADMIN_TELEGRAM_ID,
-      fileId,
-      { caption }
+    await sendToAdmins((adminId) =>
+      bot.sendPhoto(adminId, fileId, {
+        caption,
+      })
     );
-
-    console.log("PHOTO SENT");
 
     await bot.sendMessage(
       chatId,
@@ -198,15 +299,15 @@ bot.on("photo", async (msg) => {
     );
 
   } catch (e) {
-    console.log("PHOTO ERROR FULL:", e);
+    console.log("PHOTO ERROR:", e);
     bot.sendMessage(msg.chat.id, "❌ Send failed");
   }
 });
 
 /* ================= TEXT ================= */
+
 bot.on("message", async (msg) => {
   if (msg.photo) return;
-
   if (msg.text && msg.text.startsWith("/start")) return;
 
   bot.sendMessage(
