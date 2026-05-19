@@ -182,6 +182,9 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
 
   const code = match?.[1];
 
+  // 🔥 DEBUG LOG — СРАЗУ СМОТРИМ ЧТО ПРИШЛО
+  console.log("RAW CODE:", code);
+
   if (!code) {
     return bot.sendMessage(
       chatId,
@@ -189,11 +192,18 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
     );
   }
 
+  // ✔️ чистим код (ВАЖНО)
+  const cleanCode = code.trim();
+
+  console.log("CLEAN CODE:", cleanCode);
+
   try {
     const linkRes = await q(
       "SELECT * FROM telegram_links WHERE code=$1 AND used=false",
-      [code]
+      [cleanCode]
     );
+
+    console.log("DB RESULT:", linkRes.rows);
 
     const link = linkRes.rows[0];
 
@@ -222,7 +232,7 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
 
     await q(
       "UPDATE telegram_links SET used=true WHERE code=$1",
-      [code]
+      [cleanCode]
     );
 
     bot.sendMessage(chatId, "✅ Account connected successfully!");
@@ -232,7 +242,6 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
     bot.sendMessage(chatId, "❌ Error connecting account");
   }
 });
-
 /* ================= SEND TO ALL ADMINS ================= */
 
 async function sendToAdmins(sendFn) {
