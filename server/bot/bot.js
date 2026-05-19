@@ -183,6 +183,8 @@ function generateCode() {
 /* ================= CONNECT ACCOUNT (/start) ================= */
 
 bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
+  console.log("RAW TEXT:", msg.text);
+  console.log("MATCH:", match);
   const chatId = msg.chat.id;
   const username = msg.from.username || null;
 
