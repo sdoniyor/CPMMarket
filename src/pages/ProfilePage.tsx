@@ -430,6 +430,7 @@ type User = {
   ref_count?: number;
   telegram_username?: string;
   telegram_id?: string;
+  telegram_code?: string;
   active_promo?: {
     promo_code: string;
     rules: { discount: number; allowed_types?: string[] };
@@ -906,7 +907,7 @@ export default function ProfilePage() {
                   <motion.a
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.95 }}
-                    href={`https://t.me/CPMMarket_bot?start=${user.id}`}
+                    href={`https://t.me/CPMMarket_bot?start=${user.telegram_code}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 px-6 py-3 font-black uppercase tracking-widest shrink-0"
