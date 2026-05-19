@@ -157,10 +157,10 @@
 // module.exports = bot;
 
 
-
 require("dotenv").config();
 
 const TelegramBot = require("node-telegram-bot-api");
+const crypto = require("crypto");
 const { q } = require("../db");
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, {
@@ -174,52 +174,44 @@ const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || "")
   .map(id => id.trim())
   .filter(Boolean);
 
-/* ================= CONNECT ACCOUNT ================= */
+/* ================= GENERATE CODE ================= */
+
+function generateCode() {
+  return crypto.randomBytes(3).toString("hex"); // a1b2c3
+}
+
+/* ================= CONNECT ACCOUNT (/start) ================= */
 
 bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const username = msg.from.username || null;
 
-  const code = match?.[1];
+  const code = match?.[1]?.trim();
 
-  // 🔥 DEBUG LOG — СРАЗУ СМОТРИМ ЧТО ПРИШЛО
   console.log("RAW CODE:", code);
 
   if (!code) {
     return bot.sendMessage(
       chatId,
-      "👋 Welcome!\nGo to site and connect Telegram first."
+      "👋 Go to website and get connect code first"
     );
   }
 
-  // ✔️ чистим код (ВАЖНО)
-  const cleanCode = code.trim();
-
-  console.log("CLEAN CODE:", cleanCode);
-
   try {
-    const linkRes = await q(
+    const res = await q(
       "SELECT * FROM telegram_links WHERE code=$1 AND used=false",
-      [cleanCode]
+      [code]
     );
 
-    console.log("DB RESULT:", linkRes.rows);
+    const link = res.rows[0];
 
-    const link = linkRes.rows[0];
+    console.log("DB LINK:", link);
 
     if (!link) {
       return bot.sendMessage(chatId, "❌ Invalid or expired code");
     }
 
-    const userCheck = await q(
-      "SELECT * FROM users WHERE id=$1",
-      [link.user_id]
-    );
-
-    if (!userCheck.rows.length) {
-      return bot.sendMessage(chatId, "❌ User not found");
-    }
-
+    // connect user
     await q(
       `
       UPDATE users
@@ -230,19 +222,21 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
       [chatId, username, link.user_id]
     );
 
+    // mark used
     await q(
       "UPDATE telegram_links SET used=true WHERE code=$1",
-      [cleanCode]
+      [code]
     );
 
-    bot.sendMessage(chatId, "✅ Account connected successfully!");
+    bot.sendMessage(chatId, "✅ Connected successfully!");
 
   } catch (e) {
-    console.log("BOT ERROR:", e);
-    bot.sendMessage(chatId, "❌ Error connecting account");
+    console.log("START ERROR:", e);
+    bot.sendMessage(chatId, "❌ Server error");
   }
 });
-/* ================= SEND TO ALL ADMINS ================= */
+
+/* ================= SEND TO ADMINS ================= */
 
 async function sendToAdmins(sendFn) {
   for (const adminId of ADMIN_IDS) {
@@ -254,20 +248,17 @@ async function sendToAdmins(sendFn) {
   }
 }
 
-/* ================= SCREENSHOT ================= */
+/* ================= SCREENSHOT HANDLER ================= */
 
 bot.on("photo", async (msg) => {
   try {
     const chatId = msg.chat.id;
 
-    const biggestPhoto =
-      msg.photo[msg.photo.length - 1];
-
-    const fileId = biggestPhoto.file_id;
+    const fileId = msg.photo[msg.photo.length - 1].file_id;
 
     const userRes = await q(
       `
-      SELECT id,name,email,telegram_username
+      SELECT id, name, email, telegram_username
       FROM users
       WHERE telegram_id=$1
       `,
@@ -294,18 +285,11 @@ bot.on("photo", async (msg) => {
 `;
     }
 
-    /* ================= SEND TO ALL ADMINS ================= */
-
     await sendToAdmins((adminId) =>
-      bot.sendPhoto(adminId, fileId, {
-        caption,
-      })
+      bot.sendPhoto(adminId, fileId, { caption })
     );
 
-    await bot.sendMessage(
-      chatId,
-      "✅ Screenshot sent"
-    );
+    bot.sendMessage(chatId, "✅ Screenshot sent");
 
   } catch (e) {
     console.log("PHOTO ERROR:", e);
@@ -313,7 +297,7 @@ bot.on("photo", async (msg) => {
   }
 });
 
-/* ================= TEXT ================= */
+/* ================= DEFAULT TEXT ================= */
 
 bot.on("message", async (msg) => {
   if (msg.photo) return;
