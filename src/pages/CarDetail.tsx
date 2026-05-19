@@ -997,7 +997,7 @@ export default function CarDetail() {
                       className="font-black uppercase tracking-[0.22em]"
                       style={{ fontSize: 8, color: "rgba(255,255,255,0.2)" }}
                     >
-                      Test IP
+                      IP server:
                     </span>
                     <span
                       className="font-black font-mono px-3 py-1"
