@@ -149,7 +149,6 @@
 
 // module.exports = router;
 
-
 const express = require("express");
 const auth = require("../middleware/auth");
 const { q } = require("../db");
@@ -182,20 +181,24 @@ router.get("/me", auth, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // ================= AUTO CREATE TELEGRAM LINK =================
+    // ================= TELEGRAM LINK (FIXED LOGIC) =================
     const linkRes = await q(
-      "SELECT * FROM telegram_links WHERE user_id=$1",
+      "SELECT code FROM telegram_links WHERE user_id=$1",
       [req.userId]
     );
 
+    let telegram_code;
+
     if (!linkRes.rows.length) {
-      const code = crypto.randomBytes(3).toString("hex");
+      telegram_code = crypto.randomBytes(3).toString("hex");
 
       await q(
         `INSERT INTO telegram_links(user_id, code, used)
          VALUES ($1,$2,false)`,
-        [req.userId, code]
+        [req.userId, telegram_code]
       );
+    } else {
+      telegram_code = linkRes.rows[0].code;
     }
 
     // ================= REFERRALS =================
@@ -241,6 +244,9 @@ router.get("/me", auth, async (req, res) => {
 
       telegram_username: user.telegram_username,
       telegram_id: user.telegram_id,
+
+      // 🔥 FIX: THIS WAS MISSING BEFORE
+      telegram_code,
 
       active_promo: isValidPromo
         ? {
