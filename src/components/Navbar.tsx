@@ -45,7 +45,7 @@
 
 //   return (
 //     <nav className="w-full h-[76px] fixed top-0 left-0 z-[100] px-4 sm:px-8 flex items-center justify-center">
-//       {/* Стеклянный эффект фона (Glassmorphism) */}
+
 //       <div className="absolute inset-0 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/50" />
 
 //       <div className="max-w-[1400px] w-full h-full relative flex items-center justify-between">
@@ -64,31 +64,43 @@
 //             <span className="text-white font-[900] text-xl italic tracking-tighter uppercase">
 //               CPM<span className="text-yellow-400">MARKET</span>
 //             </span>
-//             <span className="text-[9px] text-white/30 font-bold tracking-[0.2em] uppercase">Trading Hub</span>
+//             <span className="text-[9px] text-white/30 font-bold tracking-[0.2em] uppercase">
+//               Trading Hub
+//             </span>
 //           </div>
 //         </motion.div>
 
-//         {/* ПРАВАЯ ЧАСТЬ: БАЛАНС И ПРОФИЛЬ */}
+//         {/* ПРАВАЯ ЧАСТЬ */}
 //         <div className="flex items-center gap-4 sm:gap-6">
-          
-//           {/* Блок баланса (показывается только если есть данные) */}
-//           {user && (
+
+//           {/* 🔥 FAQ КНОПКА (НОВАЯ) */}
+//           <motion.button
+//             whileHover={{ y: -2 }}
+//             whileTap={{ scale: 0.98 }}
+//             onClick={() => navigate("/faq")}
+//             className="hidden sm:flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all text-white/80 text-sm font-bold"
+//           >
+//             FAQ
+//           </motion.button>
+
+//           {/* БАЛАНС */}
+//           {/* {user && (
 //             <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-2xl">
 //               <Wallet size={16} className="text-yellow-400" />
 //               <span className="text-sm font-bold text-white/90 italic">
-//                 {user.balance?.toLocaleString() || 0} <span className="text-yellow-400">$</span>
+//                 {user.balance?.toLocaleString() || 0}{" "}
+//                 <span className="text-yellow-400">$</span>
 //               </span>
 //             </div>
-//           )}
+//           )} */}
 
-//           {/* КНОПКА ПРОФИЛЯ */}
+//           {/* ПРОФИЛЬ */}
 //           <motion.button
 //             whileHover={{ y: -2 }}
 //             whileTap={{ scale: 0.98 }}
 //             onClick={goProfile}
 //             className="flex items-center gap-3 p-1.5 pr-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all group"
 //           >
-//             {/* Аватарка или иконка */}
 //             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-black font-black overflow-hidden shadow-lg group-hover:shadow-yellow-400/20 transition-all">
 //               {user?.avatar ? (
 //                 <img
@@ -105,9 +117,10 @@
 //               )}
 //             </div>
 
-//             {/* Имя пользователя */}
 //             <div className="flex flex-col items-start leading-tight">
-//               <span className="text-white/40 text-[9px] font-bold uppercase tracking-wider">Driver</span>
+//               <span className="text-white/40 text-[9px] font-bold uppercase tracking-wider">
+//                 Driver
+//               </span>
 //               <span className="text-white font-black text-sm tracking-tight truncate max-w-[100px]">
 //                 {user?.name || "GUEST"}
 //               </span>
@@ -122,9 +135,10 @@
 
 
 
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Wallet, LayoutGrid } from "lucide-react";
+import { User, Flame, Flag } from "lucide-react";
 import { motion } from "framer-motion";
 
 const SERVER_URL = "https://cpmmarker.onrender.com";
@@ -138,9 +152,7 @@ export default function Navbar() {
     if (!token) return;
     try {
       const res = await fetch(`${SERVER_URL}/profile/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (data?.id) setUser(data);
@@ -159,97 +171,203 @@ export default function Navbar() {
   const goProfile = (e: any) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
-    if (!token) {
-      navigate("/", { replace: true });
-      return;
-    }
-    navigate("/profile");
+    navigate(!token ? "/" : "/profile");
   };
 
+  const avatarUrl = user?.avatar
+    ? user.avatar.startsWith("http") ? user.avatar : `${SERVER_URL}${user.avatar}`
+    : null;
+
   return (
-    <nav className="w-full h-[76px] fixed top-0 left-0 z-[100] px-4 sm:px-8 flex items-center justify-center">
+    <nav className="w-full h-[68px] fixed top-0 left-0 z-[100] flex items-center px-4 sm:px-8">
+      {/* backdrop */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "rgba(8,8,9,0.88)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+        }}
+      />
 
-      <div className="absolute inset-0 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/50" />
+      {/* top red accent line */}
+      <div
+        className="absolute top-0 inset-x-0 h-[1.5px]"
+        style={{ background: "linear-gradient(90deg, #FF3D00, #FF3D0000 60%)" }}
+      />
 
-      <div className="max-w-[1400px] w-full h-full relative flex items-center justify-between">
-        
-        {/* ЛОГОТИП */}
+      {/* subtle scanline on navbar */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.8) 4px, rgba(0,0,0,0.8) 5px)",
+        }}
+      />
+
+      <div className="relative max-w-[1400px] w-full mx-auto flex items-center justify-between">
+
+        {/* ── LOGO ── */}
         <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => navigate("/market")}
-          className="flex items-center gap-2 cursor-pointer group"
+          className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-all duration-300 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-            <LayoutGrid size={22} className="text-black -rotate-3 group-hover:rotate-0 transition-all duration-300" />
+          {/* icon */}
+          <div
+            className="w-9 h-9 flex items-center justify-center relative shrink-0 transition-all duration-300"
+            style={{
+              background: "#FF3D0018",
+              border: "1px solid #FF3D0050",
+              clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)",
+            }}
+          >
+            <Flame
+              size={17}
+              style={{ color: "#FF3D00" }}
+              className="group-hover:scale-110 transition-transform duration-300"
+            />
+            {/* corner pip */}
+            <div
+              className="absolute bottom-0 right-0 w-2 h-2"
+              style={{ background: "#FF3D00", clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+            />
           </div>
-          <div className="flex flex-col leading-none">
-            <span className="text-white font-[900] text-xl italic tracking-tighter uppercase">
-              CPM<span className="text-yellow-400">MARKET</span>
+
+          {/* wordmark */}
+          <div className="leading-none flex flex-col">
+            <span
+              className="font-black italic uppercase tracking-tighter leading-none"
+              style={{ fontSize: 18 }}
+            >
+              <span
+                style={{
+                  WebkitTextStroke: "1px rgba(255,255,255,0.25)",
+                  color: "transparent",
+                }}
+              >
+                CPM
+              </span>
+              <span
+                style={{
+                  color: "#FF3D00",
+                  textShadow: "0 0 16px #FF3D0055",
+                }}
+              >
+                MARKET
+              </span>
             </span>
-            <span className="text-[9px] text-white/30 font-bold tracking-[0.2em] uppercase">
+            <span
+              className="font-bold uppercase tracking-[0.25em]"
+              style={{ fontSize: 7, color: "rgba(255,255,255,0.18)" }}
+            >
               Trading Hub
             </span>
           </div>
         </motion.div>
 
-        {/* ПРАВАЯ ЧАСТЬ */}
-        <div className="flex items-center gap-4 sm:gap-6">
+        {/* ── RIGHT ── */}
+        <div className="flex items-center gap-3">
 
-          {/* 🔥 FAQ КНОПКА (НОВАЯ) */}
+          {/* FAQ */}
           <motion.button
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/faq")}
-            className="hidden sm:flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all text-white/80 text-sm font-bold"
+            className="hidden sm:flex items-center gap-2 font-black uppercase tracking-[0.22em] transition-all duration-200"
+            style={{
+              fontSize: 9,
+              color: "rgba(255,255,255,0.3)",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              padding: "7px 16px",
+              clipPath: "polygon(0 0, 92% 0, 100% 35%, 100% 100%, 8% 100%, 0 65%)",
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.color = "#FF3D00";
+              el.style.borderColor = "#FF3D0040";
+              el.style.background = "#FF3D0010";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.color = "rgba(255,255,255,0.3)";
+              el.style.borderColor = "rgba(255,255,255,0.07)";
+              el.style.background = "rgba(255,255,255,0.03)";
+            }}
           >
+            <Flag size={10} />
             FAQ
           </motion.button>
 
-          {/* БАЛАНС */}
-          {/* {user && (
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-2xl">
-              <Wallet size={16} className="text-yellow-400" />
-              <span className="text-sm font-bold text-white/90 italic">
-                {user.balance?.toLocaleString() || 0}{" "}
-                <span className="text-yellow-400">$</span>
-              </span>
-            </div>
-          )} */}
-
-          {/* ПРОФИЛЬ */}
+          {/* PROFILE BUTTON */}
           <motion.button
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.96 }}
             onClick={goProfile}
-            className="flex items-center gap-3 p-1.5 pr-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all group"
+            className="flex items-center gap-3 transition-all duration-200 group"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              padding: "5px 14px 5px 5px",
+              clipPath: "polygon(0 0, 96% 0, 100% 30%, 100% 100%, 4% 100%, 0 70%)",
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.borderColor = "#FF3D0035";
+              el.style.background = "#FF3D0008";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.borderColor = "rgba(255,255,255,0.07)";
+              el.style.background = "rgba(255,255,255,0.03)";
+            }}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-black font-black overflow-hidden shadow-lg group-hover:shadow-yellow-400/20 transition-all">
-              {user?.avatar ? (
+            {/* avatar */}
+            <div
+              className="w-8 h-8 overflow-hidden shrink-0 flex items-center justify-center font-black italic"
+              style={{
+                background: avatarUrl ? "#000" : "#FF3D0018",
+                border: "1px solid #FF3D0040",
+                clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)",
+                fontSize: 14,
+                color: "#FF3D00",
+              }}
+            >
+              {avatarUrl ? (
                 <img
-                  src={
-                    user.avatar.startsWith("http")
-                      ? user.avatar
-                      : `${SERVER_URL}${user.avatar}`
-                  }
+                  src={avatarUrl}
                   alt="avatar"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <User size={20} fill="currentColor" />
+                <User size={15} style={{ color: "#FF3D00" }} />
               )}
             </div>
 
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-white/40 text-[9px] font-bold uppercase tracking-wider">
+            {/* name */}
+            <div className="flex flex-col items-start leading-none">
+              <span
+                className="font-black uppercase tracking-[0.22em]"
+                style={{ fontSize: 7, color: "rgba(255,255,255,0.2)" }}
+              >
                 Driver
               </span>
-              <span className="text-white font-black text-sm tracking-tight truncate max-w-[100px]">
+              <span
+                className="font-black italic uppercase tracking-tight truncate"
+                style={{ fontSize: 13, maxWidth: 96, color: "rgba(255,255,255,0.85)" }}
+              >
                 {user?.name || "GUEST"}
               </span>
             </div>
-          </motion.button>
 
+            {/* live indicator */}
+            {user && (
+              <div
+                className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0"
+                style={{ background: "#FF3D00" }}
+              />
+            )}
+          </motion.button>
         </div>
       </div>
     </nav>
