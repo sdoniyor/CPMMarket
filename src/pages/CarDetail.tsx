@@ -1103,7 +1103,7 @@ export default function CarDetail() {
                       className="font-black uppercase tracking-widest"
                       style={{ fontSize: 9, color: tok.color }}
                     >
-                      UZCARD
+                      TBC
                     </span>
                   </div>
 
