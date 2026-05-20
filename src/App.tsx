@@ -101,6 +101,7 @@ import ProfilePage from "./pages/ProfilePage";
 import MarketPage from "./pages/MarketPage";
 import CarDetail from "./pages/CarDetail";
 import FaqPage from "./pages/FaqPage"; // 👈 ДОБАВИЛ FAQ
+import KingPage from "./pages/KingPage";
 
 import Navbar from "./components/Navbar";
 
@@ -166,6 +167,19 @@ export default function App() {
 
         {/* ================= FAQ ================= */}
         <Route path="/faq" element={<FaqPage />} />
+
+        {/* ================= KING ================= */}
+        <Route
+          path="/king"
+          element={
+            <RequireAuth>
+              <>
+                <Navbar />
+                <KingPage />
+              </>
+            </RequireAuth>
+          }
+        />
 
         {/* ================= ADMIN PANEL ================= */}
         <Route
