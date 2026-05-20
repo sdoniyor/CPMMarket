@@ -557,6 +557,7 @@ export default function CarDetail() {
   const [password, setPassword] = useState("");
   const [sending, setSending] = useState(false);
   const [snapshot, setSnapshot] = useState<any>(null);
+  const [receipt, setReceipt] = useState<File | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -600,19 +601,44 @@ export default function CarDetail() {
     setShowPay(true);
   };
 
-  const buy = async () => {
+    const buy = async () => {
     try {
+      if (!receipt) {
+        return alert("Upload receipt/check image");
+      }
+
       setSending(true);
+
       const token = localStorage.getItem("token");
+
+      const form = new FormData();
+
+      form.append("receipt", receipt);
+
+      form.append("car", JSON.stringify(snapshot.car));
+      form.append("configs", JSON.stringify(snapshot));
+      form.append("total", String(snapshot.total));
+      form.append("password", password);
+
       await fetch(`${API}/telegram/order-to-tg`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ car: snapshot.car, configs: snapshot, total: snapshot.total, password }),
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form,
       });
+
       alert("ORDER SENT SUCCESSFULLY!");
+
       setShowPay(false);
-    } catch {
+
+      setReceipt(null);
+
+    } catch (e) {
+      console.log(e);
+
       alert("Error sending order");
+
     } finally {
       setSending(false);
     }
@@ -957,6 +983,106 @@ export default function CarDetail() {
                     borderRadius: 2,
                   }}
                 >
+                  {/* RECEIPT UPLOAD */}
+                  <div
+                    className="p-4 relative overflow-hidden"
+                    style={{
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      borderRadius: 2,
+                    }}
+                  >
+                    {/* scanline */}
+                    <div
+                      className="absolute inset-0 pointer-events-none opacity-[0.08]"
+                      style={{
+                        backgroundImage:
+                          "repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.6) 4px, rgba(0,0,0,0.6) 5px)",
+                      }}
+                    />
+
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-3">
+                        <span
+                          className="font-black uppercase tracking-[0.22em]"
+                          style={{
+                            fontSize: 8,
+                            color: "rgba(255,255,255,0.25)",
+                          }}
+                        >
+                          Payment Receipt
+                        </span>
+
+                        {receipt && (
+                          <span
+                            className="font-black uppercase tracking-wider"
+                            style={{
+                              fontSize: 8,
+                              color: tok.color,
+                            }}
+                          >
+                            ATTACHED
+                          </span>
+                        )}
+                      </div>
+
+                      <label
+                        className="w-full flex items-center justify-center cursor-pointer transition-all duration-200"
+                        style={{
+                          border: `1px dashed ${tok.color}55`,
+                          padding: "18px",
+                          background: tok.dim,
+                          minHeight: 120,
+                        }}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+
+                            if (file) {
+                              setReceipt(file);
+                            }
+                          }}
+                        />
+
+                        {!receipt ? (
+                          <div className="text-center">
+                            <p
+                              className="font-black uppercase tracking-widest"
+                              style={{
+                                fontSize: 10,
+                                color: tok.color,
+                              }}
+                            >
+                              Upload Check
+                            </p>
+
+                            <p
+                              style={{
+                                fontSize: 10,
+                                color: "rgba(255,255,255,0.35)",
+                                marginTop: 5,
+                              }}
+                            >
+                              JPG / PNG / WEBP
+                            </p>
+                          </div>
+                        ) : (
+                          <img
+                            src={URL.createObjectURL(receipt)}
+                            alt="receipt"
+                            className="w-full h-44 object-cover"
+                            style={{
+                              borderRadius: 2,
+                            }}
+                          />
+                        )}
+                      </label>
+                    </div>
+                  </div>
                   {/* scanline */}
                   <div
                     className="absolute inset-0 pointer-events-none opacity-[0.12]"
