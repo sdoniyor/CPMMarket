@@ -269,6 +269,35 @@ export default function Navbar() {
         {/* ── RIGHT ── */}
         <div className="flex items-center gap-3">
 
+          {/* King */}
+            <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/king")}
+            className="hidden sm:flex items-center gap-2 font-black uppercase tracking-[0.22em] transition-all duration-200"
+            style={{
+              fontSize: 9,
+              color: "#FFB800",
+              background: "rgba(255,184,0,0.08)",
+              border: "1px solid rgba(255,184,0,0.2)",
+              padding: "7px 16px",
+              clipPath:
+                "polygon(0 0, 92% 0, 100% 35%, 100% 100%, 8% 100%, 0 65%)",
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget;
+              el.style.background = "rgba(255,184,0,0.15)";
+              el.style.borderColor = "rgba(255,184,0,0.35)";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget;
+              el.style.background = "rgba(255,184,0,0.08)";
+              el.style.borderColor = "rgba(255,184,0,0.2)";
+            }}
+          >
+            👑 KING
+          </motion.button>
+
           {/* FAQ */}
           <motion.button
             whileHover={{ scale: 1.04 }}
