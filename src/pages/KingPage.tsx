@@ -1,11 +1,11 @@
 // @ts-nocheck
 
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, useGLTF } from '@react-three/drei'
 
-const CharacterModel: React.FC = () => {
-  const { scene } = useGLTF('/models/character.glb')
+function CharacterModel() {
+  const { scene } = useGLTF('./models/black_solider_3.glb')
 
   return (
     <primitive
@@ -15,6 +15,9 @@ const CharacterModel: React.FC = () => {
     />
   )
 }
+
+// optional preload (improves load stability)
+useGLTF.preload('/models/character.glb')
 
 const BoostAccountPage: React.FC = () => {
   return (
@@ -30,14 +33,20 @@ const BoostAccountPage: React.FC = () => {
             </h1>
 
             <div className="w-full h-[620px] rounded-[28px] overflow-hidden border border-zinc-700 bg-gradient-to-b from-zinc-800 to-black relative shadow-inner">
-              <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-                <ambientLight intensity={1.8} />
-                <directionalLight position={[3, 2, 1]} intensity={2} />
-                <spotLight position={[0, 5, 5]} intensity={2} angle={0.3} penumbra={1} />
+              <Canvas
+                camera={{ position: [0, 0, 5], fov: 45 }}
+                onCreated={({ gl }) => {
+                  gl.setClearColor('#0a0a0a')
+                }}
+              >
+                <ambientLight intensity={1.2} />
+                <directionalLight position={[3, 2, 1]} intensity={1.5} />
+                <spotLight position={[0, 5, 5]} intensity={1.5} angle={0.3} penumbra={1} />
 
-                <CharacterModel />
-
-                <Environment preset="city" />
+                <Suspense fallback={null}>
+                  <CharacterModel />
+                  <Environment preset="city" />
+                </Suspense>
 
                 <OrbitControls
                   enableZoom={false}
