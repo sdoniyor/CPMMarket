@@ -16,7 +16,6 @@
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.27",
     "concurrently": "^9.2.1",
@@ -31,8 +30,6 @@
     "vite": "^8.0.4"
   },
   "dependencies": {
-    "@react-three/drei": "^9.122.0",
-    "@react-three/fiber": "^8.18.0",
     "bcrypt": "^6.0.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
@@ -41,7 +38,6 @@
     "node-telegram-bot-api": "^0.67.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.30.3",
-    "three": "^0.184.0"
+    "react-router-dom": "^6.30.3"
   }
 }
