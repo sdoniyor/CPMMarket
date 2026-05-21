@@ -5,7 +5,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, useGLTF } from '@react-three/drei'
 
 function CharacterModel() {
-  const { scene } = useGLTF('./models/black_solider_3.glb')
+  const { scene } = useGLTF('/models/poor_guy.glb')
 
   return (
     <primitive
