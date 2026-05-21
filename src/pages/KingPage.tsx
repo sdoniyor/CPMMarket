@@ -1,111 +1,94 @@
-// @ts-nocheck
+import { useState } from "react";
+import { motion } from "framer-motion";
 
-import React, { Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Environment, useGLTF } from '@react-three/drei'
-
-function CharacterModel() {
-  const { scene } = useGLTF('/models/poor_guy.glb')
+export default function KingPreviewPage() {
+  const [view, setView] = useState<"css" | "motion" | "holo" | "gif">("css");
 
   return (
-    <primitive
-      object={scene}
-      scale={2.2}
-      position={[0, -2.2, 0]}
-    />
-  )
-}
+    <div className="min-h-screen bg-zinc-950 text-white p-6 flex flex-col gap-6">
 
-// optional preload (improves load stability)
-useGLTF.preload('/models/character.glb')
+      {/* HEADER */}
+      <div className="text-center">
+        <h1 className="text-3xl font-black">3D ALTERNATIVES PREVIEW</h1>
+        <p className="text-zinc-500">Choose what looks best for your project</p>
+      </div>
 
-const BoostAccountPage: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6 overflow-hidden">
-      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* LEFT SIDE */}
-        <div className="bg-zinc-900 rounded-[32px] border border-zinc-800 shadow-2xl overflow-hidden relative min-h-[750px]">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-transparent to-cyan-500/20 blur-3xl" />
+      {/* SWITCHER */}
+      <div className="flex gap-2 justify-center flex-wrap">
+        {[
+          ["css", "CSS Fake 3D"],
+          ["motion", "Framer Motion"],
+          ["holo", "Hologram UI"],
+          ["gif", "GIF / Video"],
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setView(key as any)}
+            className={`px-4 py-2 rounded-xl border text-sm font-bold transition ${
+              view === key
+                ? "bg-purple-600 border-purple-400"
+                : "bg-zinc-900 border-zinc-700"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-          <div className="relative z-10 flex flex-col items-center h-full p-8">
-            <h1 className="text-5xl font-black mb-6 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent text-center">
-              ПРОКАЧКА АККАУНТА
-            </h1>
+      {/* PREVIEW AREA */}
+      <div className="max-w-3xl mx-auto w-full">
 
-            <div className="w-full h-[620px] rounded-[28px] overflow-hidden border border-zinc-700 bg-gradient-to-b from-zinc-800 to-black relative shadow-inner">
-              <Canvas
-                camera={{ position: [0, 0, 5], fov: 45 }}
-                onCreated={({ gl }) => {
-                  gl.setClearColor('#0a0a0a')
-                }}
-              >
-                <ambientLight intensity={1.2} />
-                <directionalLight position={[3, 2, 1]} intensity={1.5} />
-                <spotLight position={[0, 5, 5]} intensity={1.5} angle={0.3} penumbra={1} />
-
-                <Suspense fallback={null}>
-                  <CharacterModel />
-                  <Environment preset="city" />
-                </Suspense>
-
-                <OrbitControls
-                  enableZoom={false}
-                  autoRotate
-                  autoRotateSpeed={2}
-                />
-              </Canvas>
-
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-xl px-5 py-3 rounded-full border border-zinc-700 text-zinc-300 text-sm">
-                Крути персонажа мышкой
-              </div>
+        {/* 1 CSS FAKE 3D */}
+        {view === "css" && (
+          <div className="w-full h-[320px] rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-black to-cyan-500/20 blur-3xl" />
+            <div className="relative text-center">
+              <div className="text-7xl">🧙‍♂️</div>
+              <p className="text-zinc-400 mt-2">CSS Character</p>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* RIGHT SIDE */}
-        <div className="bg-zinc-900 rounded-[32px] border border-zinc-800 shadow-2xl p-8 lg:p-10">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-4xl font-black">ОФОРМЛЕНИЕ</h2>
-              <p className="text-zinc-400 mt-2">
-                Заполните данные для начала прокачки
-              </p>
-            </div>
+        {/* 2 FRAMER MOTION */}
+        {view === "motion" && (
+          <motion.div
+            animate={{ y: [0, -12, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="w-full h-[320px] rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center"
+          >
+            <span className="text-black font-black text-xl">
+              FLOATING CORE
+            </span>
+          </motion.div>
+        )}
 
-            <div className="bg-gradient-to-r from-purple-600 to-cyan-500 px-5 py-3 rounded-2xl shadow-lg">
-              <span className="text-2xl font-black">$49</span>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <input className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4" placeholder="Имя" />
-            <input className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4" placeholder="ID аккаунта" />
-            <input className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4" placeholder="Email" />
-            <input className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4" placeholder="Пароль" type="password" />
-
-            <label className="border-2 border-dashed border-zinc-700 rounded-3xl h-[180px] flex items-center justify-center cursor-pointer bg-zinc-800/40">
-              Загрузить чек
-              <input type="file" className="hidden" />
-            </label>
-
-            <button className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 py-5 rounded-3xl text-xl font-black">
-              ОПЛАТИТЬ
-            </button>
-
-            <div className="bg-zinc-800/50 border border-zinc-700 rounded-3xl p-6">
-              <div className="flex justify-between mb-3">
-                <span>Статус</span>
-                <span className="text-yellow-400">Ожидание</span>
-              </div>
-              <div className="h-3 bg-zinc-700 rounded-full">
-                <div className="h-full w-[45%] bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full" />
-              </div>
+        {/* 3 HOLOGRAM */}
+        {view === "holo" && (
+          <div className="w-full h-[320px] rounded-2xl bg-black border border-cyan-500/30 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-cyan-500/10 blur-3xl" />
+            <div className="relative text-center">
+              <div className="text-cyan-400 text-6xl">⌬</div>
+              <p className="text-cyan-300 mt-2">Hologram Unit</p>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* 4 GIF */}
+        {view === "gif" && (
+          <div className="w-full h-[320px] rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+            <img
+              src="https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif"
+              className="w-48 h-48"
+            />
+          </div>
+        )}
+
+      </div>
+
+      {/* FOOTER INFO */}
+      <div className="text-center text-zinc-500 text-sm">
+        Switch between styles to choose your replacement for 3D model
       </div>
     </div>
-  )
+  );
 }
-
-export default BoostAccountPage
