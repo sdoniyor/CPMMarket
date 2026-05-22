@@ -14,14 +14,13 @@ export default function AccountBoosting() {
 
     setLoading(true);
 
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("amount", amount);
+    formData.append("receipt", receiptFile);
+
     try {
-      const formData = new FormData();
-
-      formData.append("email", email);
-      formData.append("password", password);
-      formData.append("amount", amount);
-      formData.append("receipt", receiptFile);
-
       const res = await fetch("http://localhost:5000/submit", {
         method: "POST",
         body: formData,
@@ -34,8 +33,7 @@ export default function AccountBoosting() {
       } else {
         alert("Ошибка отправки");
       }
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
       alert("Сервер недоступен");
     }
 
@@ -44,79 +42,140 @@ export default function AccountBoosting() {
 
   return (
     <div className="min-h-screen bg-[#06060c] text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-xl bg-[#0b0b14] border border-white/10 rounded-2xl p-6 space-y-5">
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        <h1 className="text-2xl font-bold">
-          Оплата аккаунта
-        </h1>
+        {/* LEFT SIDE */}
+        <div className="relative rounded-2xl overflow-hidden bg-[#0b0b14] border border-white/10 p-8 flex flex-col justify-between min-h-[600px]">
 
-        <p className="text-sm text-gray-400">
-          Сумма: <span className="text-emerald-400 font-bold">{amount} $</span>
-        </p>
+          {/* BACKGROUND */}
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e')] bg-cover bg-center opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/30 via-black/40 to-black" />
 
-        {/* EMAIL */}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-[#121225] border border-white/10 rounded-xl p-3 text-sm"
-        />
+          <div className="relative z-10 flex flex-col justify-between h-full">
 
-        {/* PASSWORD */}
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full bg-[#121225] border border-white/10 rounded-xl p-3 text-sm"
-        />
+            {/* STATS */}
+            <div className="flex gap-4">
 
-        {/* FILE UPLOAD */}
-        <div>
-          <label className="text-xs text-gray-400">
-            Загрузите чек оплаты
-          </label>
+              <div className="flex-1 bg-[#121225]/60 border border-purple-500/20 rounded-xl p-4">
+                <p className="text-xs text-gray-400">Прокачано</p>
+                <p className="text-3xl font-black">12,540</p>
+                <p className="text-xs text-purple-400">аккаунтов</p>
+              </div>
 
-          <input
-            type="file"
-            accept="image/*"
-            className="w-full mt-2 text-sm"
-            onChange={(e) => setReceiptFile(e.target.files?.[0])}
-          />
+              <div className="flex-1 bg-[#121225]/60 border border-purple-500/20 rounded-xl p-4">
+                <p className="text-xs text-gray-400">Рейтинг</p>
+                <p className="text-3xl font-black">4.9</p>
+                <p className="text-xs text-purple-400">★★★★★</p>
+              </div>
 
-          {receiptFile && (
-            <p className="text-xs text-purple-400 mt-2">
-              📎 {receiptFile.name}
-            </p>
-          )}
+            </div>
+
+            {/* FEATURES */}
+            <div className="grid grid-cols-2 gap-3 mt-6">
+
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
+                🛡️ Безопасность
+              </div>
+
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
+                ⚡ Скорость
+              </div>
+
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
+                🎧 Поддержка
+              </div>
+
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
+                👤 Анонимно
+              </div>
+
+            </div>
+
+          </div>
         </div>
 
-        {/* BUTTON */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading || success}
-          className={`w-full py-3 rounded-xl font-bold transition ${
-            success
-              ? "bg-emerald-600"
-              : loading
-              ? "bg-gray-600"
-              : "bg-purple-600 hover:bg-purple-500"
-          }`}
-        >
-          {success
-            ? "Отправлено ✔"
-            : loading
-            ? "Отправка..."
-            : "Оплатить"}
-        </button>
+        {/* RIGHT SIDE */}
+        <div className="bg-[#0b0b14] border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
 
-        {/* STATUS */}
-        {success && (
-          <div className="text-center text-emerald-400 text-sm">
-            ✔ Ваши данные отправлены администратору
+          <div>
+
+            <h1 className="text-3xl font-black">
+              Прокачка <span className="text-purple-500">аккаунта</span>
+            </h1>
+
+            <p className="text-xs text-gray-400 mt-2 mb-6">
+              Отправьте данные и чек оплаты
+            </p>
+
+            {/* EMAIL */}
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full mb-3 bg-[#121225] border border-white/10 rounded-xl p-3 text-sm"
+            />
+
+            {/* PASSWORD */}
+            <input
+              type="password"
+              placeholder="Пароль"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full mb-3 bg-[#121225] border border-white/10 rounded-xl p-3 text-sm"
+            />
+
+            {/* AMOUNT */}
+            <div className="mb-4 bg-[#121225] border border-purple-500/20 rounded-xl p-4 flex justify-between">
+              <span className="text-sm text-gray-400">Сумма</span>
+              <span className="text-emerald-400 font-bold">
+                {amount} $
+              </span>
+            </div>
+
+            {/* FILE UPLOAD */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setReceiptFile(e.target.files?.[0])}
+              className="mb-3"
+            />
+
+            {receiptFile && (
+              <p className="text-xs text-purple-400 mb-3">
+                📎 {receiptFile.name}
+              </p>
+            )}
+
           </div>
-        )}
+
+          {/* BUTTON */}
+          <button
+            onClick={handleSubmit}
+            disabled={!email || !password || !receiptFile || loading || success}
+            className={`w-full py-4 rounded-xl font-bold transition ${
+              success
+                ? "bg-emerald-600"
+                : loading
+                ? "bg-gray-600"
+                : "bg-purple-600 hover:bg-purple-500"
+            }`}
+          >
+            {success
+              ? "Отправлено ✔"
+              : loading
+              ? "Отправка..."
+              : "Оплатить"}
+          </button>
+
+          {success && (
+            <p className="text-center text-emerald-400 text-sm mt-3">
+              ✔ Данные отправлены в Telegram
+            </p>
+          )}
+
+        </div>
+
       </div>
     </div>
   );
