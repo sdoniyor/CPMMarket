@@ -17,7 +17,7 @@ export default function AccountBoosting() {
     const formData = new FormData();
     formData.append("email", email);
     formData.append("password", password);
-    formData.append("amount", amount);
+    formData.append("amount", amount.toString());
     formData.append("receipt", receiptFile);
 
     try {
