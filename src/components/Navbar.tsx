@@ -269,15 +269,46 @@
 
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { User, Flame, Flag, Crown, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 
 const SERVER_URL = "https://cpmmarker.onrender.com";
 
+const NAV_LINKS = [
+  {
+    key: "market",
+    label: "Market",
+    path: "/market",
+    icon: ShoppingBag,
+    activeColor: "#FF3D00",
+    activeBg: "#FF3D0010",
+    activeBorder: "#FF3D0040",
+  },
+  {
+    key: "king",
+    label: "King",
+    path: "/king",
+    icon: Crown,
+    activeColor: "#FFB800",
+    activeBg: "rgba(255,184,0,0.12)",
+    activeBorder: "rgba(255,184,0,0.4)",
+  },
+  {
+    key: "faq",
+    label: "FAQ",
+    path: "/faq",
+    icon: Flag,
+    activeColor: "#FF3D00",
+    activeBg: "#FF3D0010",
+    activeBorder: "#FF3D0040",
+  },
+];
+
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem("token");
 
   const loadUser = async () => {
@@ -321,7 +352,7 @@ export default function Navbar() {
           borderBottom: "1px solid rgba(255,255,255,0.05)",
         }}
       />
-      {/* top accent line */}
+      {/* top accent */}
       <div
         className="absolute top-0 inset-x-0 h-[1.5px]"
         style={{ background: "linear-gradient(90deg, #FF3D00, #FF3D0000 60%)" }}
@@ -362,109 +393,75 @@ export default function Navbar() {
             />
           </div>
           <div className="leading-none flex flex-col">
-            <span className="font-black italic uppercase tracking-tighter leading-none" style={{ fontSize: 18 }}>
-              <span style={{ WebkitTextStroke: "1px rgba(255,255,255,0.25)", color: "transparent" }}>CPM</span>
-              <span style={{ color: "#FF3D00", textShadow: "0 0 16px #FF3D0055" }}>MARKET</span>
+            <span
+              className="font-black italic uppercase tracking-tighter leading-none"
+              style={{ fontSize: 18 }}
+            >
+              <span style={{ WebkitTextStroke: "1px rgba(255,255,255,0.25)", color: "transparent" }}>
+                CPM
+              </span>
+              <span style={{ color: "#FF3D00", textShadow: "0 0 16px #FF3D0055" }}>
+                MARKET
+              </span>
             </span>
-            <span className="font-bold uppercase tracking-[0.25em]" style={{ fontSize: 7, color: "rgba(255,255,255,0.18)" }}>
+            <span
+              className="font-bold uppercase tracking-[0.25em]"
+              style={{ fontSize: 7, color: "rgba(255,255,255,0.18)" }}
+            >
               Trading Hub
             </span>
           </div>
         </motion.div>
 
-        {/* ── CENTER: Market + King ── */}
+        {/* ── CENTER: nav links ── */}
         <div className="hidden sm:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+          {NAV_LINKS.map(({ key, label, path, icon: Icon, activeColor, activeBg, activeBorder }) => {
+            const isActive = location.pathname === path || location.pathname.startsWith(path + "/");
 
-          {/* MARKET */}
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/market")}
-            className="flex items-center gap-2 font-black uppercase tracking-[0.22em] transition-all duration-200"
-            style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.35)",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              padding: "7px 16px",
-              clipPath: "polygon(0 0, 92% 0, 100% 35%, 100% 100%, 8% 100%, 0 65%)",
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.color = "#FF3D00";
-              el.style.borderColor = "#FF3D0040";
-              el.style.background = "#FF3D0010";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.color = "rgba(255,255,255,0.35)";
-              el.style.borderColor = "rgba(255,255,255,0.07)";
-              el.style.background = "rgba(255,255,255,0.03)";
-            }}
-          >
-            <ShoppingBag size={10} />
-            Market
-          </motion.button>
-
-          {/* KING */}
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/king")}
-            className="flex items-center gap-2 font-black uppercase tracking-[0.22em] transition-all duration-200"
-            style={{
-              fontSize: 9,
-              color: "#FFB800",
-              background: "rgba(255,184,0,0.08)",
-              border: "1px solid rgba(255,184,0,0.25)",
-              padding: "7px 16px",
-              clipPath: "polygon(0 0, 92% 0, 100% 35%, 100% 100%, 8% 100%, 0 65%)",
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.background = "rgba(255,184,0,0.16)";
-              el.style.borderColor = "rgba(255,184,0,0.4)";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.background = "rgba(255,184,0,0.08)";
-              el.style.borderColor = "rgba(255,184,0,0.25)";
-            }}
-          >
-            <Crown size={10} />
-            King
-          </motion.button>
-
-          {/* FAQ */}
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/faq")}
-            className="flex items-center gap-2 font-black uppercase tracking-[0.22em] transition-all duration-200"
-            style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.3)",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              padding: "7px 16px",
-              clipPath: "polygon(0 0, 92% 0, 100% 35%, 100% 100%, 8% 100%, 0 65%)",
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.color = "#FF3D00";
-              el.style.borderColor = "#FF3D0040";
-              el.style.background = "#FF3D0010";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.color = "rgba(255,255,255,0.3)";
-              el.style.borderColor = "rgba(255,255,255,0.07)";
-              el.style.background = "rgba(255,255,255,0.03)";
-            }}
-          >
-            <Flag size={10} />
-            FAQ
-          </motion.button>
+            return (
+              <motion.button
+                key={key}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate(path)}
+                className="relative flex items-center gap-2 font-black uppercase tracking-[0.22em] transition-all duration-200"
+                style={{
+                  fontSize: 9,
+                  color: isActive ? activeColor : "rgba(255,255,255,0.3)",
+                  background: isActive ? activeBg : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${isActive ? activeBorder : "rgba(255,255,255,0.07)"}`,
+                  padding: "7px 16px",
+                  clipPath: "polygon(0 0, 92% 0, 100% 35%, 100% 100%, 8% 100%, 0 65%)",
+                }}
+                onMouseEnter={(e) => {
+                  if (isActive) return;
+                  const el = e.currentTarget as HTMLButtonElement;
+                  el.style.color = activeColor;
+                  el.style.borderColor = activeBorder;
+                  el.style.background = activeBg;
+                }}
+                onMouseLeave={(e) => {
+                  if (isActive) return;
+                  const el = e.currentTarget as HTMLButtonElement;
+                  el.style.color = "rgba(255,255,255,0.3)";
+                  el.style.borderColor = "rgba(255,255,255,0.07)";
+                  el.style.background = "rgba(255,255,255,0.03)";
+                }}
+              >
+                {/* active bottom indicator */}
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-active-bar"
+                    className="absolute inset-x-0 bottom-0 h-[1.5px]"
+                    style={{ background: `linear-gradient(90deg, ${activeColor}, transparent)` }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <Icon size={10} />
+                {label}
+              </motion.button>
+            );
+          })}
         </div>
 
         {/* ── RIGHT: Profile ── */}
@@ -489,7 +486,6 @@ export default function Navbar() {
             el.style.background = "rgba(255,255,255,0.03)";
           }}
         >
-          {/* avatar */}
           <div
             className="w-8 h-8 overflow-hidden shrink-0 flex items-center justify-center font-black italic"
             style={{
@@ -511,21 +507,26 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* name */}
           <div className="flex flex-col items-start leading-none">
-            <span className="font-black uppercase tracking-[0.22em]"
-              style={{ fontSize: 7, color: "rgba(255,255,255,0.2)" }}>
+            <span
+              className="font-black uppercase tracking-[0.22em]"
+              style={{ fontSize: 7, color: "rgba(255,255,255,0.2)" }}
+            >
               Driver
             </span>
-            <span className="font-black italic uppercase tracking-tight truncate"
-              style={{ fontSize: 13, maxWidth: 96, color: "rgba(255,255,255,0.85)" }}>
+            <span
+              className="font-black italic uppercase tracking-tight truncate"
+              style={{ fontSize: 13, maxWidth: 96, color: "rgba(255,255,255,0.85)" }}
+            >
               {user?.name || "GUEST"}
             </span>
           </div>
 
           {user && (
-            <div className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0"
-              style={{ background: "#FF3D00" }} />
+            <div
+              className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0"
+              style={{ background: "#FF3D00" }}
+            />
           )}
         </motion.button>
       </div>
