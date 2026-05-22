@@ -100,7 +100,7 @@ import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
 import MarketPage from "./pages/MarketPage";
 import CarDetail from "./pages/CarDetail";
-import FaqPage from "./pages/FaqPage"; // 👈 ДОБАВИЛ FAQ
+import FaqPage from "./pages/FaqPage"; 
 import KingPage from "./pages/KingPage";
 
 import Navbar from "./components/Navbar";
