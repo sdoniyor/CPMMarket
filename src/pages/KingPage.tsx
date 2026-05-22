@@ -21,7 +21,6 @@ export default function AccountBoosting() {
           {/* ЛЕВАЯ СЕКЦИЯ */}
           <div className="relative rounded-[24px] overflow-hidden border border-purple-900/20 bg-[#0b0b14] p-8 flex flex-col justify-between min-h-[600px] lg:min-h-[720px]">
 
-            {/* ФОН */}
             <div
               className="absolute inset-0 bg-cover bg-center z-0"
               style={{
@@ -44,7 +43,7 @@ export default function AccountBoosting() {
 
                   <div>
                     <p className="text-[10px] text-gray-400">Прокачано</p>
-                    <p className="text-2xl font-black tracking-wide leading-none my-0.5">
+                    <p className="text-2xl font-black leading-none my-0.5">
                       12,540
                     </p>
                     <p className="text-[10px] text-purple-400">
@@ -63,7 +62,7 @@ export default function AccountBoosting() {
                       Рейтинг сервиса
                     </p>
 
-                    <p className="text-2xl font-black tracking-wide leading-none my-0.5">
+                    <p className="text-2xl font-black leading-none my-0.5">
                       4.9
                     </p>
 
@@ -119,7 +118,7 @@ export default function AccountBoosting() {
 
             <div>
 
-              <h2 className="text-3xl font-black tracking-wide uppercase">
+              <h2 className="text-3xl font-black uppercase">
                 Прокачка{" "}
                 <span className="text-purple-500">
                   аккаунта
@@ -134,24 +133,22 @@ export default function AccountBoosting() {
               <div className="relative flex items-center justify-between mb-10 max-w-md mx-auto">
 
                 {/* Линия */}
-                <div className="absolute left-0 right-0 top-5 h-[2px] bg-zinc-800 rounded-full z-0" />
+                <div className="absolute left-0 right-0 top-5 h-[2px] bg-zinc-800 rounded-full" />
 
-                {/* Заполнение */}
+                {/* Анимация заполнения */}
                 <div
-                  className={`absolute left-0 top-5 h-[2px] bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full z-0 transition-all duration-500 ${
-                    step === 1 ? 'w-0' : 'w-1/2'
+                  className={`absolute left-0 top-5 h-[2px] rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-500 ${
+                    step === 1 ? 'w-0' : 'w-full'
                   }`}
                 />
 
                 {/* ШАГ 1 */}
-                <button
-                  onClick={() => setStep(1)}
-                  className="relative z-10 flex flex-col items-center flex-1"
-                >
+                <div className="relative z-10 flex flex-col items-center flex-1">
+
                   <div
-                    className={`w-10 h-10 rounded-full text-sm font-bold flex items-center justify-center border transition-all duration-300 ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border transition-all duration-300 ${
                       step >= 1
-                        ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.6)] scale-105'
+                        ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.6)]'
                         : 'bg-[#121225] border-zinc-800 text-gray-500'
                     }`}
                   >
@@ -159,7 +156,7 @@ export default function AccountBoosting() {
                   </div>
 
                   <span
-                    className={`text-[11px] mt-2 font-medium transition-colors duration-300 ${
+                    className={`text-[11px] mt-2 transition-all duration-300 ${
                       step >= 1
                         ? 'text-purple-400'
                         : 'text-gray-500'
@@ -167,17 +164,16 @@ export default function AccountBoosting() {
                   >
                     Данные
                   </span>
-                </button>
+
+                </div>
 
                 {/* ШАГ 2 */}
-                <button
-                  onClick={() => setStep(2)}
-                  className="relative z-10 flex flex-col items-center flex-1"
-                >
+                <div className="relative z-10 flex flex-col items-center flex-1">
+
                   <div
-                    className={`w-10 h-10 rounded-full text-sm font-bold flex items-center justify-center border transition-all duration-300 ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border transition-all duration-300 ${
                       step >= 2
-                        ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.6)] scale-105'
+                        ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.6)]'
                         : 'bg-[#121225] border-zinc-800 text-gray-500'
                     }`}
                   >
@@ -185,15 +181,16 @@ export default function AccountBoosting() {
                   </div>
 
                   <span
-                    className={`text-[11px] mt-2 font-medium transition-colors duration-300 ${
+                    className={`text-[11px] mt-2 transition-all duration-300 ${
                       step >= 2
                         ? 'text-purple-400'
                         : 'text-gray-500'
                     }`}
                   >
-                    Услуга
+                    Оплата
                   </span>
-                </button>
+
+                </div>
 
               </div>
 
@@ -203,7 +200,7 @@ export default function AccountBoosting() {
 
                   {/* EMAIL */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] text-gray-400 font-medium">
+                    <label className="text-[11px] text-gray-400">
                       E-mail
                     </label>
 
@@ -222,7 +219,7 @@ export default function AccountBoosting() {
 
                   {/* ПАРОЛЬ */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] text-gray-400 font-medium">
+                    <label className="text-[11px] text-gray-400">
                       Пароль
                     </label>
 
@@ -241,7 +238,7 @@ export default function AccountBoosting() {
 
                   {/* ЗАГРУЗКА */}
                   <div className="flex flex-col gap-1.5 pt-2">
-                    <label className="text-[11px] text-gray-400 font-medium">
+                    <label className="text-[11px] text-gray-400">
                       Скриншоты / чеки
                     </label>
 
@@ -271,7 +268,7 @@ export default function AccountBoosting() {
                     onClick={() => setStep(2)}
                     className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 active:scale-[0.98] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-xs tracking-wide uppercase mt-6 shadow-[0_0_25px_rgba(168,85,247,0.35)]"
                   >
-                    Далее →
+                    Продолжить →
                   </button>
 
                 </div>
@@ -279,41 +276,45 @@ export default function AccountBoosting() {
 
               {/* ШАГ 2 */}
               {step === 2 && (
-                <div className="space-y-4 animate-[fade_0.4s_ease]">
+                <div className="animate-[fade_0.4s_ease]">
 
-                  <div className="bg-[#121225]/40 border border-purple-500/20 rounded-xl p-5 hover:border-purple-500/40 transition-all cursor-pointer">
+                  <div className="bg-[#121225]/40 border border-purple-500/20 rounded-2xl p-6">
 
-                    <p className="text-sm font-bold text-white">
-                      Базовая прокачка
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-purple-400">
+                      Ваш заказ
                     </p>
 
-                    <p className="text-xs text-gray-400 mt-1">
-                      Повышение уровня, ресурсов и рейтинга
+                    <h3 className="text-2xl font-black mt-3">
+                      Прокачка аккаунта
+                    </h3>
+
+                    <p className="text-sm text-gray-400 mt-2">
+                      Повышение уровня, рейтинга и игровых ресурсов
                     </p>
 
-                    <p className="text-2xl font-black text-emerald-400 mt-4">
-                      49.99 $
-                    </p>
+                    <div className="mt-8 flex items-center justify-between">
+
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase">
+                          Стоимость
+                        </p>
+
+                        <p className="text-3xl font-black text-emerald-400 mt-1">
+                          49.99 $
+                        </p>
+                      </div>
+
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-2xl shadow-[0_0_25px_rgba(168,85,247,0.4)]">
+                        ⚡
+                      </div>
+
+                    </div>
+
+                    <button className="mt-8 w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 active:scale-[0.98] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-xs tracking-wide uppercase shadow-[0_0_25px_rgba(168,85,247,0.35)]">
+                      Оплатить →
+                    </button>
+
                   </div>
-
-                  <div className="bg-[#121225]/40 border border-white/5 rounded-xl p-5 hover:border-purple-500/40 transition-all cursor-pointer">
-
-                    <p className="text-sm font-bold text-white">
-                      Премиум прокачка
-                    </p>
-
-                    <p className="text-xs text-gray-400 mt-1">
-                      Быстрая прокачка + VIP поддержка
-                    </p>
-
-                    <p className="text-2xl font-black text-emerald-400 mt-4">
-                      99.99 $
-                    </p>
-                  </div>
-
-                  <button className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 active:scale-[0.98] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-xs tracking-wide uppercase mt-6 shadow-[0_0_25px_rgba(168,85,247,0.35)]">
-                    Оплатить →
-                  </button>
 
                 </div>
               )}
