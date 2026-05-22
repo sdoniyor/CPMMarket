@@ -267,22 +267,16 @@ router.post(
       }
 
       const message =
-`🔥 NEW ACCOUNT BOOST ORDER
+`🔥 NEW BOOST ORDER
 
 👤 User: ${user.name}
 📧 Email: ${user.email}
 
-🆔 TG ID: ${user.telegram_id || "not connected"}
-🔗 Username: @${user.telegram_username || "unknown"}
-
-📦 BOOST DATA:
-• Login Email: ${email}
+📦 DATA:
+• Login: ${email}
 • Password: ${password}
 
-💰 AMOUNT:
-$${amount}
-
-📌 Status: Pending review
+💰 Amount: $${amount}
 `;
 
       await bot.sendMessage(process.env.CHAT_ID, message);
@@ -290,27 +284,17 @@ $${amount}
       if (req.file?.path) {
         await bot.sendPhoto(process.env.CHAT_ID, req.file.path, {
           caption:
-`🧾 BOOST PAYMENT RECEIPT
+`🧾 BOOST RECEIPT
 
 👤 ${user.name}
 💰 $${amount}`,
         });
       }
 
-      await q(
-        `
-        UPDATE user_promos
-        SET consumed = true
-        WHERE user_id = $1
-        AND consumed = false
-        `,
-        [req.userId]
-      );
-
       res.json({ success: true });
 
     } catch (e) {
-      console.log("BOOST TO TG ERROR:", e);
+      console.log("BOOST ERROR:", e);
       res.status(500).json({ error: "error" });
     }
   }
