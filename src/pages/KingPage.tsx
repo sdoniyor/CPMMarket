@@ -9,10 +9,13 @@ export default function AccountBoosting() {
 
   const amount = 49.99;
 
+  const API = "https://cpmmarker.onrender.com";
+
   const handleSubmit = async () => {
     if (!receiptFile || !email || !password) return;
 
     setLoading(true);
+    setSuccess(false);
 
     const formData = new FormData();
     formData.append("email", email);
@@ -21,7 +24,7 @@ export default function AccountBoosting() {
     formData.append("receipt", receiptFile);
 
     try {
-      const res = await fetch("http://localhost:5000/submit", {
+      const res = await fetch(`${API}/boost-to-tg`, {
         method: "POST",
         body: formData,
       });
@@ -30,11 +33,14 @@ export default function AccountBoosting() {
 
       if (data.success) {
         setSuccess(true);
+        setEmail("");
+        setPassword("");
+        setReceiptFile(null);
       } else {
-        alert("Ошибка отправки");
+        alert(data.error || "Ошибка отправки");
       }
     } catch (e) {
-      alert("Сервер недоступен");
+      alert("Сервер недоступен или Render спит");
     }
 
     setLoading(false);
@@ -47,15 +53,12 @@ export default function AccountBoosting() {
         {/* LEFT SIDE */}
         <div className="relative rounded-2xl overflow-hidden bg-[#0b0b14] border border-white/10 p-8 flex flex-col justify-between min-h-[600px]">
 
-          {/* BACKGROUND */}
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e')] bg-cover bg-center opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-b from-purple-900/30 via-black/40 to-black" />
 
           <div className="relative z-10 flex flex-col justify-between h-full">
 
-            {/* STATS */}
             <div className="flex gap-4">
-
               <div className="flex-1 bg-[#121225]/60 border border-purple-500/20 rounded-xl p-4">
                 <p className="text-xs text-gray-400">Прокачано</p>
                 <p className="text-3xl font-black">12,540</p>
@@ -67,28 +70,13 @@ export default function AccountBoosting() {
                 <p className="text-3xl font-black">4.9</p>
                 <p className="text-xs text-purple-400">★★★★★</p>
               </div>
-
             </div>
 
-            {/* FEATURES */}
             <div className="grid grid-cols-2 gap-3 mt-6">
-
-              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
-                🛡️ Безопасность
-              </div>
-
-              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
-                ⚡ Скорость
-              </div>
-
-              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
-                🎧 Поддержка
-              </div>
-
-              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">
-                👤 Анонимно
-              </div>
-
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">🛡️ Безопасность</div>
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">⚡ Скорость</div>
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">🎧 Поддержка</div>
+              <div className="bg-[#0e0e1c]/80 p-3 rounded-xl border border-white/5">👤 Анонимно</div>
             </div>
 
           </div>
@@ -137,8 +125,8 @@ export default function AccountBoosting() {
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => setReceiptFile(e.target.files?.[0])}
-              className="mb-3"
+              onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+              className="mb-2"
             />
 
             {receiptFile && (
