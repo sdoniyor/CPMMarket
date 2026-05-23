@@ -227,7 +227,7 @@ function Field({
   );
 }
 
-const AMOUNT = 49.99;
+const AMOUNT = 7.000;
 
 const STATS = [
   { label: "Прокачано", val: "12,540", sub: "аккаунтов" },
