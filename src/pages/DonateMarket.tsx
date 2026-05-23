@@ -32,7 +32,12 @@ export default function DonateMarket() {
   const [loading, setLoading] = useState(false);
 
   /* ================= OPEN MODAL ================= */
-  const openBuyModal = (pack: any, category: string, perks?: string[]) => {
+
+  const openBuyModal = (
+    pack: any,
+    category: string,
+    perks?: string[]
+  ) => {
     setSelectedPack({
       ...pack,
       category,
@@ -43,6 +48,7 @@ export default function DonateMarket() {
   };
 
   /* ================= SEND ORDER ================= */
+
   const sendOrder = async () => {
     try {
       if (!receipt) {
@@ -141,6 +147,22 @@ export default function DonateMarket() {
         "shadow-yellow-500/10 hover:shadow-yellow-500/30",
       isLegend: true,
     },
+    {
+      id: 4,
+      badge: "LEGEND PACK",
+      badgeColor:
+        "bg-orange-500/20 text-orange-500 border-orange-500/30",
+      amount: "500 000",
+      perks: [
+        "Premium Access",
+        "Fast Pass",
+        "Special Decals",
+      ],
+      price: "$199.99",
+      glowColor:
+        "shadow-orange-500/20 hover:shadow-orange-500/40 border-orange-500/40",
+      isLegend: true,
+    },
   ];
 
   /* ================= CASH ================= */
@@ -162,116 +184,219 @@ export default function DonateMarket() {
         "bg-green-500/20 text-green-400",
       price: "$14.99",
     },
+    {
+      id: 3,
+      badge: "HEAVY LOAD",
+      amount: "100M",
+      badgeColor:
+        "bg-green-500/20 text-green-400",
+      price: "$49.99",
+    },
+    {
+      id: 4,
+      badge: "ULTIMATE CASH",
+      amount: "500M",
+      badgeColor:
+        "bg-green-500/20 text-green-400",
+      price: "$99.99",
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-[#0b0b0b] text-white p-6">
+    <div className="min-h-screen bg-[#0b0b0b] text-white font-sans antialiased selection:bg-orange-500 selection:text-black p-4 md:p-8 relative overflow-hidden">
 
-      <div className="max-w-7xl mx-auto">
+      {/* BG GLOW */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[300px] bg-gradient-to-b from-orange-500/5 via-transparent to-transparent pointer-events-none blur-3xl" />
 
-        {/* HEADER */}
+      <div className="max-w-7xl mx-auto relative z-10">
 
-        <h1 className="text-5xl font-black italic uppercase mb-10">
-          DONATE MARKET
-        </h1>
-
-        {/* TABS */}
-
-        <div className="flex gap-3 mb-10">
-          {(["all", "coins", "cash"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded ${
-                activeTab === tab
-                  ? "bg-orange-500 text-black"
-                  : "bg-zinc-800"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* TOP */}
+        <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-orange-500 font-semibold mb-2">
+          <span className="inline-block w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+          CPM Racing Market
         </div>
 
-        {/* COINS */}
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+
+          <h1 className="text-4xl md:text-6xl font-black italic tracking-tight uppercase">
+            GET PREMIUM CURRENCY{" "}
+            <span className="text-orange-500">
+              & BOOSTS ///
+            </span>
+          </h1>
+
+          {/* TABS */}
+          <div className="flex gap-2 bg-[#121212] border border-zinc-800 p-1 rounded-md self-start md:self-auto">
+            {(["all", "coins", "cash"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-1.5 rounded text-xs uppercase font-bold tracking-wider transition-all duration-200 ${
+                  activeTab === tab
+                    ? "bg-zinc-800 text-white shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {tab === "all"
+                  ? "All Products"
+                  : tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ================= COINS ================= */}
 
         {(activeTab === "all" ||
           activeTab === "coins") && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
+          <div className="mb-14">
 
-            {coinPacks.map((pack) => (
-              <div
-                key={pack.id}
-                className="bg-[#111] border border-zinc-800 rounded-xl p-6"
-              >
-                <div className="text-3xl mb-5">
-                  💎
-                </div>
+            <h2 className="text-2xl font-black italic uppercase tracking-wide mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-cyan-500 block" />
+              COIN PACKS
+            </h2>
 
-                <div className="text-2xl font-black mb-2">
-                  {pack.amount}
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                <div className="text-zinc-400 mb-6">
-                  {pack.badge}
-                </div>
-
-                <div className="text-orange-500 text-2xl font-black mb-6">
-                  {pack.price}
-                </div>
-
-                <button
-                  onClick={() =>
-                    openBuyModal(
-                      pack,
-                      "COINS",
-                      pack.perks
-                    )
-                  }
-                  className="w-full bg-orange-500 hover:bg-orange-400 text-black font-black py-3 rounded"
+              {coinPacks.map((pack) => (
+                <div
+                  key={pack.id}
+                  className={`bg-[#111111] border border-zinc-800/80 rounded-xl p-6 flex flex-col justify-between transition-all duration-300 shadow-xl ${pack.glowColor} group hover:-translate-y-1`}
                 >
-                  BUY
-                </button>
-              </div>
-            ))}
+
+                  <div>
+
+                    {/* BADGE */}
+                    <div className="flex justify-between items-start mb-6">
+
+                      <span
+                        className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md border ${pack.badgeColor}`}
+                      >
+                        {pack.badge}
+                      </span>
+
+                      {pack.isLegend && (
+                        <span className="text-[10px] font-black bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-2 py-0.5 rounded uppercase tracking-wider shadow-[0_0_10px_rgba(234,179,8,0.3)]">
+                          Best Value
+                        </span>
+                      )}
+                    </div>
+
+                    {/* ICON */}
+                    <div className="w-full h-32 flex items-center justify-center my-4 relative">
+                      <div className="absolute w-20 h-20 bg-current opacity-5 blur-2xl rounded-full text-cyan-400 group-hover:scale-125 transition-transform" />
+
+                      <span className="text-5xl group-hover:scale-110 transition-transform duration-300 select-none">
+                        {pack.id === 1
+                          ? "💎"
+                          : pack.id === 2
+                          ? "🪙"
+                          : pack.id === 3
+                          ? "🧰"
+                          : "👑"}
+                      </span>
+                    </div>
+
+                    {/* AMOUNT */}
+                    <div className="text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400 mb-4 tracking-tight">
+                      {pack.amount}{" "}
+                      <span className="text-xs font-bold text-zinc-500 not-italic tracking-normal">
+                        COINS
+                      </span>
+                    </div>
+
+                    {/* PERKS */}
+                    <ul className="space-y-2 mb-8">
+                      {pack.perks.map((perk, idx) => (
+                        <li
+                          key={idx}
+                          className="text-xs text-zinc-400 flex items-center gap-2"
+                        >
+                          <span className="w-1 h-1 bg-zinc-500 rounded-full" />
+                          {perk}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* BUY */}
+                  <div className="flex items-center justify-between pt-4 border-t border-zinc-900">
+
+                    <span className="text-xl font-black text-cyan-400 tracking-tight">
+                      {pack.price}
+                    </span>
+
+                    <button
+                      onClick={() =>
+                        openBuyModal(
+                          pack,
+                          "COINS",
+                          pack.perks
+                        )
+                      }
+                      className="bg-zinc-800 hover:bg-orange-500 text-white hover:text-black font-bold uppercase text-xs py-2 px-4 rounded transition-all duration-200 tracking-wider flex items-center gap-1"
+                    >
+                      BUY
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* CASH */}
+        {/* ================= CASH ================= */}
 
         {(activeTab === "all" ||
           activeTab === "cash") && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
 
-            {cashPacks.map((pack) => (
-              <div
-                key={pack.id}
-                className="bg-[#111] border border-zinc-800 rounded-xl p-6 flex items-center justify-between"
-              >
-                <div>
-                  <div className="text-2xl font-black">
-                    {pack.amount}
-                  </div>
+            <h2 className="text-2xl font-black italic uppercase tracking-wide mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-green-500 block" />
+              CASH BOOSTS
+            </h2>
 
-                  <div className="text-zinc-400">
-                    {pack.badge}
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                  <div className="text-green-500 text-xl font-black mt-2">
-                    {pack.price}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() =>
-                    openBuyModal(pack, "CASH")
-                  }
-                  className="bg-orange-500 hover:bg-orange-400 text-black font-black px-6 py-3 rounded"
+              {cashPacks.map((pack) => (
+                <div
+                  key={pack.id}
+                  className="bg-[#111111] border border-zinc-800/80 rounded-xl p-5 flex items-center justify-between hover:border-green-500/30 hover:bg-[#141414] transition-all duration-200 shadow-lg group"
                 >
-                  BUY
-                </button>
-              </div>
-            ))}
+
+                  <div className="space-y-2">
+
+                    <span
+                      className={`text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${pack.badgeColor}`}
+                    >
+                      {pack.badge}
+                    </span>
+
+                    <div className="text-3xl font-black text-green-500 italic tracking-tighter">
+                      {pack.amount}{" "}
+                      <span className="text-xs text-zinc-600 not-italic font-bold">
+                        CASH
+                      </span>
+                    </div>
+
+                    <div className="text-sm text-zinc-400 font-bold">
+                      {pack.price}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      openBuyModal(pack, "CASH")
+                    }
+                    className="bg-zinc-900 border border-zinc-800 px-4 py-2 rounded hover:bg-orange-500 hover:text-black transition-all text-sm font-bold"
+                  >
+                    BUY
+                  </button>
+
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -279,81 +404,88 @@ export default function DonateMarket() {
       {/* ================= MODAL ================= */}
 
       {modalOpen && selectedPack && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
-          <div className="bg-[#111] border border-zinc-800 rounded-2xl w-full max-w-md p-6">
+          <div className="bg-[#111111] border border-zinc-800 rounded-2xl w-full max-w-md p-6 relative overflow-hidden">
 
-            <h2 className="text-3xl font-black mb-6">
-              PAYMENT
-            </h2>
+            {/* glow */}
+            <div className="absolute top-0 left-0 w-full h-40 bg-orange-500/10 blur-3xl pointer-events-none" />
 
-            <div className="space-y-4">
+            <div className="relative z-10">
 
-              <div>
-                <div className="text-zinc-500 text-sm">
-                  PACK
+              <h2 className="text-3xl font-black italic uppercase mb-6">
+                PAYMENT
+              </h2>
+
+              <div className="space-y-5">
+
+                <div>
+                  <div className="text-zinc-500 text-xs uppercase mb-1">
+                    Selected Pack
+                  </div>
+
+                  <div className="text-xl font-black">
+                    {selectedPack.badge}
+                  </div>
                 </div>
 
-                <div className="text-xl font-bold">
-                  {selectedPack.badge}
-                </div>
-              </div>
+                <div>
+                  <div className="text-zinc-500 text-xs uppercase mb-1">
+                    Price
+                  </div>
 
-              <div>
-                <div className="text-zinc-500 text-sm">
-                  PRICE
-                </div>
-
-                <div className="text-orange-500 text-2xl font-black">
-                  {selectedPack.price}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-zinc-500 text-sm mb-2">
-                  CARD NUMBER
+                  <div className="text-orange-500 text-3xl font-black">
+                    {selectedPack.price}
+                  </div>
                 </div>
 
-                <div className="bg-black border border-zinc-700 rounded-xl p-4 text-xl tracking-widest font-black">
-                  9860 3501 XXXX XXXX
+                <div>
+                  <div className="text-zinc-500 text-xs uppercase mb-2">
+                    Card Number
+                  </div>
+
+                  <div className="bg-black border border-zinc-700 rounded-xl p-4 text-center text-xl tracking-[0.3em] font-black">
+                    9860 3501 XXXX XXXX
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <div className="text-zinc-500 text-sm mb-2">
-                  UPLOAD RECEIPT
+                <div>
+                  <div className="text-zinc-500 text-xs uppercase mb-2">
+                    Upload Receipt
+                  </div>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setReceipt(
+                        e.target.files?.[0] || null
+                      )
+                    }
+                    className="w-full bg-black border border-zinc-700 rounded-xl p-3 text-sm"
+                  />
                 </div>
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setReceipt(
-                      e.target.files?.[0] || null
-                    )
-                  }
-                  className="w-full bg-black border border-zinc-700 rounded-xl p-3"
-                />
-              </div>
+                <div className="flex gap-3 pt-4">
 
-              <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setModalOpen(false)}
+                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold transition-all"
+                  >
+                    CANCEL
+                  </button>
 
-                <button
-                  onClick={() => setModalOpen(false)}
-                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded font-bold"
-                >
-                  CANCEL
-                </button>
+                  <button
+                    onClick={sendOrder}
+                    disabled={loading}
+                    className="flex-1 bg-orange-500 hover:bg-orange-400 text-black py-3 rounded-xl font-black transition-all"
+                  >
+                    {loading
+                      ? "SENDING..."
+                      : "CONFIRM"}
+                  </button>
 
-                <button
-                  onClick={sendOrder}
-                  disabled={loading}
-                  className="flex-1 bg-orange-500 hover:bg-orange-400 text-black py-3 rounded font-black"
-                >
-                  {loading
-                    ? "SENDING..."
-                    : "CONFIRM"}
-                </button>
+                </div>
 
               </div>
             </div>
