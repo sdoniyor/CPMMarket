@@ -141,6 +141,71 @@ router.post(
   }
 );
 
+/* ================= DONATE MARKET TO TG ================= */
+router.post(
+  "/donate-to-tg",
+  auth,
+  receiptUpload.single("receipt"),
+  async (req, res) => {
+    try {
+      const { item, price, email } = req.body;
+
+      const userRes = await q(
+        "SELECT * FROM users WHERE id=$1",
+        [req.userId]
+      );
+
+      const user = userRes.rows[0];
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const message =
+`💎 NEW DONATE ORDER (MARKET)
+
+👤 User: ${user.name}
+📧 Email: ${user.email}
+🔗 TG: @${user.telegram_username || "unknown"}
+
+🛒 ITEM:
+${item}
+
+💰 PRICE:
+${price}
+
+📦 STATUS:
+Pending confirmation
+`;
+
+      // текст в канал
+      await bot.sendMessage(process.env.CHAT_ID, message);
+
+      // фото чека + красивый caption
+      if (req.file?.path) {
+        await bot.sendPhoto(process.env.CHAT_ID, req.file.path, {
+          caption:
+`🧾 DONATE RECEIPT
+
+👤 ${user.name}
+🛒 ${item}
+💰 $${price}
+
+🔥 Awaiting approval...`,
+        });
+      }
+
+      res.json({ success: true });
+
+    } catch (e) {
+      console.log("DONATE ERROR:", e);
+      res.status(500).json({ error: "error" });
+    }
+  }
+);
+
+
+
 /* ================= SIMPLE ORDER ================= */
 router.post("/order", auth, async (req, res) => {
   try {
