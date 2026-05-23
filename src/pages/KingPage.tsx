@@ -227,7 +227,7 @@ function Field({
   );
 }
 
-const AMOUNT = 7.000;
+const AMOUNT = "7 000";
 
 const STATS = [
   { label: "Прокачано", val: "12,540", sub: "аккаунтов" },
@@ -462,7 +462,7 @@ export default function AccountBoosting() {
                 </div>
                 <span className="font-black italic tracking-tighter"
                   style={{ fontSize: 26, color: "#FF3D00", textShadow: "0 0 16px #FF3D0044" }}>
-                  ${AMOUNT}
+                  {AMOUNT}
                 </span>
               </div>
 
