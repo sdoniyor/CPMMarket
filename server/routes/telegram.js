@@ -196,8 +196,7 @@ Pending confirmation
 🛒 ${item}
 💰 ${amount}
 💵 ${price}
-
-🔥 Awaiting approval...`,
+`,
         });
       }
 

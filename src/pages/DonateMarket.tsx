@@ -107,7 +107,7 @@ export default function DonateMarket() {
       badgeColor: "text-blue-400",
       amount: "5 000",
       perks: ["Premium Access"],
-      price: "$9.99",
+      price: "9.99",
       glowColor: "",
     },
     {
@@ -116,7 +116,7 @@ export default function DonateMarket() {
       badgeColor: "text-cyan-400",
       amount: "25 000",
       perks: ["Fast Pass"],
-      price: "$24.99",
+      price: "24.99",
       glowColor: "",
     },
     {
@@ -125,7 +125,7 @@ export default function DonateMarket() {
       badgeColor: "text-yellow-400",
       amount: "100 000",
       perks: ["Premium Access"],
-      price: "$79.99",
+      price: "79.99",
       glowColor: "",
     },
     {
@@ -134,7 +134,7 @@ export default function DonateMarket() {
       badgeColor: "text-orange-400",
       amount: "500 000",
       perks: ["All Access"],
-      price: "$199.99",
+      price: "199.99",
       glowColor: "",
     },
   ];
@@ -146,28 +146,28 @@ export default function DonateMarket() {
       badge: "QUICK CASH",
       amount: "1M",
       badgeColor: "",
-      price: "$4.99",
+      price: "4.99",
     },
     {
       id: 2,
       badge: "MID CASH",
       amount: "10M",
       badgeColor: "",
-      price: "$14.99",
+      price: "14.99",
     },
     {
       id: 3,
       badge: "HEAVY CASH",
       amount: "100M",
       badgeColor: "",
-      price: "$49.99",
+      price: "49.99",
     },
     {
       id: 4,
       badge: "ULTIMATE CASH",
       amount: "500M",
       badgeColor: "",
-      price: "$99.99",
+      price: "99.99",
     },
   ];
 
