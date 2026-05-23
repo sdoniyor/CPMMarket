@@ -148,7 +148,7 @@ router.post(
   receiptUpload.single("receipt"),
   async (req, res) => {
     try {
-      const { item, price, email } = req.body;
+      const { item, price, email, category, amount } = req.body;
 
       const userRes = await q(
         "SELECT * FROM users WHERE id=$1",
@@ -168,8 +168,14 @@ router.post(
 📧 Email: ${user.email}
 🔗 TG: @${user.telegram_username || "unknown"}
 
+📦 CATEGORY:
+${category || "UNKNOWN"}
+
 🛒 ITEM:
 ${item}
+
+💰 AMOUNT:
+${amount || "UNKNOWN"}
 
 💰 PRICE:
 ${price}
@@ -178,18 +184,18 @@ ${price}
 Pending confirmation
 `;
 
-      // текст в канал
       await bot.sendMessage(process.env.CHAT_ID, message);
 
-      // фото чека + красивый caption
       if (req.file?.path) {
         await bot.sendPhoto(process.env.CHAT_ID, req.file.path, {
           caption:
 `🧾 DONATE RECEIPT
 
 👤 ${user.name}
+📦 ${category}
 🛒 ${item}
-💰 $${price}
+💰 ${amount}
+💵 ${price}
 
 🔥 Awaiting approval...`,
         });
