@@ -102,6 +102,7 @@ import MarketPage from "./pages/MarketPage";
 import CarDetail from "./pages/CarDetail";
 import FaqPage from "./pages/FaqPage"; 
 import KingPage from "./pages/KingPage";
+import DonateMarket from "./pages/DonateMarket";
 
 import Navbar from "./components/Navbar";
 
@@ -138,6 +139,7 @@ export default function App() {
             </RequireAuth>
           }
         />
+
 
         {/* ================= PROFILE ================= */}
         <Route
@@ -176,6 +178,19 @@ export default function App() {
               <>
                 <Navbar />
                 <KingPage />
+              </>
+            </RequireAuth>
+          }
+        />
+
+        {/* ================= DONATE ================= */}
+        <Route
+          path="/donate"
+          element={
+            <RequireAuth>
+              <>
+                <Navbar />
+                <DonateMarket />
               </>
             </RequireAuth>
           }
