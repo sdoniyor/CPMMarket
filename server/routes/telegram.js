@@ -428,8 +428,6 @@ router.post(
 📦 CATEGORY:
 ${category || "UNKNOWN"}
 
-🛒 ITEM:
-${item}
 
 💰 AMOUNT:
 ${amount || "UNKNOWN"}
