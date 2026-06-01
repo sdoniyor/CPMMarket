@@ -154,42 +154,63 @@ export default function AdminLayout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const currentLabel = MENU.find((m) => location.pathname.startsWith(m.path))?.label ?? "Admin";
+  const currentLabel =
+    MENU.find((m) => location.pathname.startsWith(m.path))?.label ?? "Admin";
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* top accent */}
-      <div className="absolute top-0 inset-x-0 h-[2px]"
-        style={{ background: "linear-gradient(90deg, #FF3D00, transparent)" }} />
-
+      <div
+        className="absolute top-0 inset-x-0 h-[2px]"
+        style={{ background: "linear-gradient(90deg, #FF3D00, transparent)" }}
+      />
       {/* scanline */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
-        style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.8) 4px, rgba(0,0,0,0.8) 5px)" }} />
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.8) 4px, rgba(0,0,0,0.8) 5px)",
+        }}
+      />
 
       {/* logo */}
       <div className="relative px-6 pt-7 pb-8">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 flex items-center justify-center relative shrink-0"
+          <div
+            className="w-9 h-9 flex items-center justify-center relative shrink-0"
             style={{
-              background: "#FF3D0018", border: "1px solid #FF3D0050",
+              background: "#FF3D0018",
+              border: "1px solid #FF3D0050",
               clipPath: "polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%)",
-            }}>
+            }}
+          >
             <Flame size={17} style={{ color: "#FF3D00" }} />
-            <div className="absolute bottom-0 right-0 w-2 h-2"
-              style={{ background: "#FF3D00", clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }} />
+            <div
+              className="absolute bottom-0 right-0 w-2 h-2"
+              style={{ background: "#FF3D00", clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+            />
           </div>
           <div className="leading-none">
-            <span className="font-black italic uppercase tracking-tighter leading-none" style={{ fontSize: 17 }}>
-              <span style={{ WebkitTextStroke: "1px rgba(255,255,255,0.2)", color: "transparent" }}>CPM</span>
-              <span style={{ color: "#FF3D00", textShadow: "0 0 14px #FF3D0055" }}>ADMIN</span>
+            <span
+              className="font-black italic uppercase tracking-tighter leading-none"
+              style={{ fontSize: 17 }}
+            >
+              <span style={{ WebkitTextStroke: "1px rgba(255,255,255,0.2)", color: "transparent" }}>
+                CPM
+              </span>
+              <span style={{ color: "#FF3D00", textShadow: "0 0 14px #FF3D0055" }}>
+                ADMIN
+              </span>
             </span>
-            <p className="font-bold uppercase tracking-[0.25em]" style={{ fontSize: 7, color: "rgba(255,255,255,0.18)" }}>
+            <p
+              className="font-bold uppercase tracking-[0.25em]"
+              style={{ fontSize: 7, color: "rgba(255,255,255,0.18)" }}
+            >
               Control Panel
             </p>
           </div>
         </div>
 
-        {/* eyebrow divider */}
         <div className="flex items-center gap-2 mt-5">
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.05)" }} />
           <div className="w-4 h-px" style={{ background: "#FF3D0040" }} />
@@ -226,7 +247,6 @@ export default function AdminLayout() {
                 el.style.borderColor = "rgba(255,255,255,0.05)";
               }}
             >
-              {/* active left bar */}
               {active && (
                 <motion.div
                   layoutId="sidebar-active"
@@ -235,10 +255,11 @@ export default function AdminLayout() {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
-              {/* active top line */}
               {active && (
-                <div className="absolute top-0 inset-x-0 h-[1px]"
-                  style={{ background: "linear-gradient(90deg, #FF3D00, transparent)" }} />
+                <div
+                  className="absolute top-0 inset-x-0 h-[1px]"
+                  style={{ background: "linear-gradient(90deg, #FF3D00, transparent)" }}
+                />
               )}
 
               <div
@@ -270,13 +291,22 @@ export default function AdminLayout() {
       {/* bottom status */}
       <div className="relative px-4 pb-6 pt-4">
         <div className="h-px mb-4" style={{ background: "rgba(255,255,255,0.05)" }} />
-        <div className="flex items-center gap-3 px-3 py-3"
-          style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 2 }}>
-          <div className="w-7 h-7 flex items-center justify-center shrink-0"
+        <div
+          className="flex items-center gap-3 px-3 py-3"
+          style={{
+            background: "rgba(0,0,0,0.3)",
+            border: "1px solid rgba(255,255,255,0.05)",
+            borderRadius: 2,
+          }}
+        >
+          <div
+            className="w-7 h-7 flex items-center justify-center shrink-0"
             style={{
-              background: "#22c55e15", border: "1px solid #22c55e35",
+              background: "#22c55e15",
+              border: "1px solid #22c55e35",
               clipPath: "polygon(0 0, 88% 0, 100% 30%, 100% 100%, 12% 100%, 0 70%)",
-            }}>
+            }}
+          >
             <Shield size={12} style={{ color: "#22c55e" }} />
           </div>
           <div>
@@ -298,8 +328,9 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen flex text-white" style={{ background: "#080809" }}>
 
-      {/* ── bg ── */}
-      <div className="fixed inset-0 pointer-events-none z-0"
+      {/* bg */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0"
         style={{
           backgroundImage:
             "radial-gradient(ellipse 50% 30% at 0% 50%, #FF3D0008, transparent)," +
@@ -316,6 +347,7 @@ export default function AdminLayout() {
           width: 240,
           background: "#0D0D0F",
           borderRight: "1px solid rgba(255,255,255,0.06)",
+          /* ⚠️ NO overflow:hidden here — would break fixed modals */
         }}
       >
         <SidebarContent />
@@ -348,20 +380,31 @@ export default function AdminLayout() {
       </AnimatePresence>
 
       {/* ── MAIN ── */}
-      <div className="relative z-10 flex-1 flex flex-col min-h-screen min-w-0">
+      {/*
+        ⚠️ KEY FIX: main has NO overflow-y-auto.
+        overflow is on the inner scrollable div instead.
+        This ensures `position: fixed` inside child pages (modals)
+        is relative to the viewport, not this container.
+      */}
+      <div className="relative z-10 flex-1 flex flex-col" style={{ minHeight: "100vh", minWidth: 0 }}>
 
         {/* header */}
         <header
-          className="h-[60px] flex items-center justify-between px-5 shrink-0 sticky top-0 z-50"
+          className="h-[60px] flex items-center justify-between px-5 shrink-0"
           style={{
             background: "rgba(8,8,9,0.92)",
             backdropFilter: "blur(16px)",
             borderBottom: "1px solid rgba(255,255,255,0.05)",
+            /* sticky via position, NOT overflow */
+            position: "sticky",
+            top: 0,
+            zIndex: 50,
           }}
         >
-          {/* top red line */}
-          <div className="absolute top-0 inset-x-0 h-[1.5px]"
-            style={{ background: "linear-gradient(90deg, #FF3D00, transparent 50%)" }} />
+          <div
+            className="absolute top-0 inset-x-0 h-[1.5px]"
+            style={{ background: "linear-gradient(90deg, #FF3D00, transparent 50%)" }}
+          />
 
           <div className="flex items-center gap-3">
             {/* hamburger — mobile */}
@@ -380,35 +423,54 @@ export default function AdminLayout() {
 
             {/* breadcrumb */}
             <div className="flex items-center gap-2">
-              <span className="font-bold uppercase tracking-widest" style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>
+              <span
+                className="font-bold uppercase tracking-widest"
+                style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}
+              >
                 Admin
               </span>
               <ChevronRight size={10} style={{ color: "rgba(255,255,255,0.15)" }} />
-              <span className="font-black uppercase tracking-widest" style={{ fontSize: 9, color: "#FF3D00" }}>
+              <span
+                className="font-black uppercase tracking-widest"
+                style={{ fontSize: 9, color: "#FF3D00" }}
+              >
                 {currentLabel}
               </span>
             </div>
           </div>
 
-          {/* right: status indicator */}
-          <div className="flex items-center gap-2 px-3 py-1.5"
+          {/* live indicator */}
+          <div
+            className="flex items-center gap-2 px-3 py-1.5"
             style={{
               background: "rgba(0,229,255,0.06)",
               border: "1px solid rgba(0,229,255,0.2)",
               clipPath: "polygon(0 0, 90% 0, 100% 35%, 100% 100%, 10% 100%, 0 65%)",
-            }}>
+            }}
+          >
             <Zap size={11} style={{ color: "#00E5FF" }} />
-            <span className="font-black uppercase tracking-widest" style={{ fontSize: 8, color: "#00E5FF" }}>
+            <span
+              className="font-black uppercase tracking-widest"
+              style={{ fontSize: 8, color: "#00E5FF" }}
+            >
               Live
             </span>
-            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#00E5FF" }} />
+            <div
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ background: "#00E5FF" }}
+            />
           </div>
         </header>
 
-        {/* content */}
-        <main
-          className="flex-1 p-5 md:p-8 overflow-y-auto"
-          style={{ scrollbarWidth: "thin", scrollbarColor: "#FF3D0030 transparent" }}
+        {/* ── SCROLLABLE CONTENT AREA ── */}
+        {/* overflow-y-auto is HERE, not on main — so fixed modals work correctly */}
+        <div
+          className="flex-1 p-5 md:p-8"
+          style={{
+            overflowY: "auto",
+            scrollbarWidth: "thin",
+            scrollbarColor: "#FF3D0030 transparent",
+          }}
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -421,7 +483,7 @@ export default function AdminLayout() {
               <Outlet />
             </motion.div>
           </AnimatePresence>
-        </main>
+        </div>
       </div>
     </div>
   );
